@@ -115,3 +115,39 @@ export const addThumbnail=asyncHandler(async (req: AuthenticatedRequest, res: Re
     `;
     res.status(200).json({ message: "Thumbnail added successfully", song: result[0] });
 });
+
+export const deleteAlbum=asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    // Implementation for deleting an album
+    if(req.user?.role !== 'admin'){
+        res.status(403).json({ message: "Forbidden" });
+        return;
+   }
+   const {id} = req.params;
+   const album=await sql`SELECT * FROM albums WHERE id=${id}`;
+    if(album.length===0){
+        res.status(400).json({ message: "Album does not exist" });
+        return;
+    }
+   await sql`DELETE FROM songs WHERE album_id=${id}`;
+   await sql`
+        DELETE FROM albums WHERE id=${id}
+   `;
+    res.status(200).json({ message: "Album deleted successfully" });
+   
+});
+
+export const deleteSong=asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    // Implementation for deleting a song
+    if(req.user?.role !== 'admin'){
+        res.status(403).json({ message: "Forbidden" });
+        return;
+   }
+    const {id} = req.params;
+    const song=await sql`SELECT * FROM songs WHERE id=${id}`;
+    if(song.length===0){
+        res.status(400).json({ message: "Song does not exist" });
+        return;
+    }
+    await sql`DELETE FROM songs WHERE id=${id}`;
+    res.status(200).json({ message: "Song deleted successfully" });
+});

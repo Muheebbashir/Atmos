@@ -1,6 +1,6 @@
 
 import express from 'express';
-import { addAlbum,addSong ,addThumbnail} from '../controllers/admin.controller.js';
+import { addAlbum,addSong ,addThumbnail,deleteAlbum,deleteSong} from '../controllers/admin.controller.js';
 import { isAuth } from '../middleware/auth.middleware.js';
 import { uploadSingle } from '../middleware/multer.js';
 
@@ -126,4 +126,64 @@ router.route('/song/new').post(isAuth, uploadSingle('audio'), addSong);
  *         description: Server error
  */
 router.route('/song/:id').post(isAuth, uploadSingle('thumbnail'), addThumbnail);
+
+/**
+ * @openapi
+ * /api/v1/album/{id}:
+ *   delete:
+ *     summary: Delete an album
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The album ID
+ *     responses:
+ *       200:
+ *         description: Album deleted successfully
+ *       400:
+ *         description: Bad request (album does not exist)
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (not admin)
+ *       500:
+ *         description: Server error
+ */
+router.route('/album/:id').delete(isAuth,deleteAlbum);
+
+/**
+ * @openapi
+ * /api/v1/song/{id}:
+ *   delete:
+ *     summary: Delete a song
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The song ID
+ *     responses:
+ *       200:
+ *         description: Song deleted successfully
+ *       400:
+ *         description: Bad request (song does not exist)
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (not admin)
+ *       500:
+ *         description: Server error
+ */
+router.route('/song/:id').delete(isAuth,deleteSong);
 export default router;
