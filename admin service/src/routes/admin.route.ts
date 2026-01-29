@@ -1,6 +1,6 @@
 
 import express from 'express';
-import { addAlbum,addSong } from '../controllers/admin.controller.js';
+import { addAlbum,addSong ,addThumbnail} from '../controllers/admin.controller.js';
 import { isAuth } from '../middleware/auth.middleware.js';
 import { uploadSingle } from '../middleware/multer.js';
 
@@ -29,7 +29,7 @@ const router = express.Router();
  *               description:
  *                 type: string
  *                 example: "A great album."
- *               thumbnail:
+ *               thumnail:
  *                 type: string
  *                 format: binary
  *     responses:
@@ -44,7 +44,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.route('/album/new').post(isAuth, uploadSingle('thumbnail'), addAlbum);
+router.route('/album/new').post(isAuth, uploadSingle('thumnail'), addAlbum);
 /**
  * @openapi
  * /api/v1/song/new:
@@ -86,4 +86,44 @@ router.route('/album/new').post(isAuth, uploadSingle('thumbnail'), addAlbum);
  *         description: Server error
  */
 router.route('/song/new').post(isAuth, uploadSingle('audio'), addSong);
+
+/**
+ * @openapi
+ * /api/v1/song/{id}:
+ *   post:
+ *     summary: Add a thumbnail to a song
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The song ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               thumbnail:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Thumbnail added successfully
+ *       400:
+ *         description: Bad request (missing file or song does not exist)
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (not admin)
+ *       500:
+ *         description: Server error
+ */
+router.route('/song/:id').post(isAuth, uploadSingle('thumbnail'), addThumbnail);
 export default router;

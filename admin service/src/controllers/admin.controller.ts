@@ -83,3 +83,35 @@ export const addSong=asyncHandler(async (req: AuthenticatedRequest, res: Respons
     `;
     res.status(201).json({ message: "Song added successfully", song: result[0] });
 });
+
+export const addThumbnail=asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    // Implementation for adding a thumbnail to an existing album or song
+    if(req.user?.role !== 'admin'){
+        res.status(403).json({ message: "Forbidden" });
+        return;
+   }
+   const song=await sql`SELECT * FROM songs WHERE id=${req.params.id}`;
+    if(song.length===0){
+        res.status(400).json({ message: "Song does not exist" });
+        return;
+    }
+    const file= req.file;
+    if(!file){
+        res.status(400).json({ message: "Thumbnail file is required" });
+        return;
+    }
+    const buffer = getBuffer(file);
+
+    if(!buffer){
+        res.status(500).json({ message: "Error processing file" });
+        return;
+    }
+    const uploadResult = await cloudinary.v2.uploader.upload(buffer)
+    const result=await sql`
+        UPDATE songs
+        SET thumnail=${uploadResult.secure_url}
+        WHERE id=${req.params.id}
+        RETURNING *
+    `;
+    res.status(200).json({ message: "Thumbnail added successfully", song: result[0] });
+});
