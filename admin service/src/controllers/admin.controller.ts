@@ -46,3 +46,40 @@ export const addAlbum=asyncHandler(async (req: AuthenticatedRequest, res: Respon
 
     res.status(201).json({ message: "Album added successfully", album: result[0] });
 });
+
+export const addSong=asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    // Implementation for adding a song
+    if(req.user?.role !== 'admin'){
+        res.status(403).json({ message: "Forbidden" });
+        return;
+   }
+    const {title,description,album_id} = req.body;
+    const isAlbumExist=await sql`
+        SELECT * FROM albums WHERE id=${album_id}
+    `;
+    if(isAlbumExist.length===0){
+        res.status(400).json({ message: "Album does not exist" });
+        return;
+    }
+    const file= req.file;
+    if(!file){
+        res.status(400).json({ message: "Audio file is required" });
+        return;
+    }
+    const buffer = getBuffer(file);
+
+    if(!buffer){
+        res.status(500).json({ message: "Error processing file" });
+        return;
+    }
+    const uploadResult = await cloudinary.v2.uploader.upload(buffer, {
+        folder:"songs",
+        resource_type: "video",
+    });
+    const result=await sql`
+        INSERT INTO songs (title, description, audio, album_id)
+        VALUES (${title}, ${description}, ${uploadResult.secure_url}, ${album_id})
+        RETURNING *
+    `;
+    res.status(201).json({ message: "Song added successfully", song: result[0] });
+});
