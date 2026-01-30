@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import getBuffer from "../lib/dataUri.js";
 import sql from "../lib/db.js";
 import cloudinary from "cloudinary";
+import {redisClient} from '../index.js'; 
 
 interface AuthenticatedRequest extends Request {
     user?:{
@@ -43,6 +44,10 @@ export const addAlbum=asyncHandler(async (req: AuthenticatedRequest, res: Respon
         VALUES (${title}, ${description}, ${uploadResult.secure_url})
         RETURNING *
     `;
+    if(redisClient.isReady){
+         await redisClient.del("albums");
+         console.log("Albums cache cleared");
+    }
 
     res.status(201).json({ message: "Album added successfully", album: result[0] });
 });
@@ -81,6 +86,10 @@ export const addSong=asyncHandler(async (req: AuthenticatedRequest, res: Respons
         VALUES (${title}, ${description}, ${uploadResult.secure_url}, ${album_id})
         RETURNING *
     `;
+    if(redisClient.isReady){
+         await redisClient.del("songs");
+         console.log("Songs cache cleared");
+    }
     res.status(201).json({ message: "Song added successfully", song: result[0] });
 });
 
@@ -113,6 +122,10 @@ export const addThumbnail=asyncHandler(async (req: AuthenticatedRequest, res: Re
         WHERE id=${req.params.id}
         RETURNING *
     `;
+    if(redisClient.isReady){
+         await redisClient.del("songs");
+         console.log("Songs cache cleared");
+    }
     res.status(200).json({ message: "Thumbnail added successfully", song: result[0] });
 });
 
@@ -132,6 +145,14 @@ export const deleteAlbum=asyncHandler(async (req: AuthenticatedRequest, res: Res
    await sql`
         DELETE FROM albums WHERE id=${id}
    `;
+   if(redisClient.isReady){
+        await redisClient.del("albums");
+        console.log("Albums cache cleared");
+    }
+    if(redisClient.isReady){
+         await redisClient.del("songs");
+         console.log("Songs cache cleared");
+    }
     res.status(200).json({ message: "Album deleted successfully" });
    
 });
@@ -149,5 +170,10 @@ export const deleteSong=asyncHandler(async (req: AuthenticatedRequest, res: Resp
         return;
     }
     await sql`DELETE FROM songs WHERE id=${id}`;
+
+    if(redisClient.isReady){
+         await redisClient.del("songs");
+         console.log("Songs cache cleared");
+    }
     res.status(200).json({ message: "Song deleted successfully" });
 });

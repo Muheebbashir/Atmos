@@ -6,9 +6,24 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './lib/swagger.js';
 import adminRoutes from './routes/admin.route.js';
 import cloudinary from 'cloudinary';
+import redis from 'redis';
 
 const app = express();
 dotenv.config();
+
+export const redisClient = redis.createClient({
+  password: process.env.REDIS_PASSWORD || "",
+  socket: {
+    host: "redis-19030.crce263.ap-south-1-1.ec2.cloud.redislabs.com",
+    port: 19030
+  }
+});
+
+redisClient.connect().then(() => {
+  console.log("Connected to Redis");
+}).catch((error) => {
+  console.error("Redis connection error:", error);
+});
 
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
 const apiKey = process.env.CLOUDINARY_API_KEY;
