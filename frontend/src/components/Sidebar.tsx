@@ -27,7 +27,7 @@ function SideBar() {
           </div>
           <div className="flex items-center gap-3">
             <ArrowRight />
-            <Plus />
+            <Plus className="cursor-pointer" />
           </div>
         </div>
         <div onClick={() => navigate("/playlist")}>
