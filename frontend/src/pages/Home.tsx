@@ -5,7 +5,7 @@ import Songs from "../components/Songs";
 
 function Home() {
   return (
-    <div>
+    <div className="">
       <Layout>
         <Albums />
         <Songs />

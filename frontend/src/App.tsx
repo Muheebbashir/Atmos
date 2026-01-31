@@ -5,6 +5,8 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import { useAuthUser } from "./hooks/useAuthUser";
 import PageLoader from "./components/PageLoader";
+import SongDetails from "./pages/SongDetails";
+
 function App() {
   const { isLoading, isAuthenticated } = useAuthUser();
 
@@ -19,7 +21,10 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
         <Route path="/signup" element={isAuthenticated ? <Navigate to="/" /> : <Signup />} />
+        <Route path="/song/:id" element={<SongDetails />} />
       </Routes>
+      
+      
     </>
   );
 }

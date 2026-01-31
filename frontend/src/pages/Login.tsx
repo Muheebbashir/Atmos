@@ -19,6 +19,10 @@ function Login() {
       toast.error("All fields are required");
       return;
     }
+    if (!rememberMe) {
+      toast.error("You must check 'Remember me' to continue");
+      return;
+    }
 
     // Call login mutation
     login(

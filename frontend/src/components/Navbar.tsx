@@ -12,7 +12,7 @@ function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     queryClient.removeQueries({ queryKey: ["authUser"] });
-    navigate("/login");
+    window.location.reload(); // Force re-evaluation everywhere
   };
 
   return (

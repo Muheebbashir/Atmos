@@ -6,6 +6,7 @@ import PageLoader from "./PageLoader";
 import { Play, ListPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser } from "../hooks/useAuthUser";
+import { usePlayerStore } from "../store/usePlayerStore";
 
 interface Song {
   id: number;
@@ -20,6 +21,7 @@ interface Song {
 function Songs() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuthUser();
+  const playerStore = usePlayerStore();
 
   const { data, isLoading } = useQuery({
     queryKey: ["songs"],
@@ -47,12 +49,17 @@ function Songs() {
   };
 
   // ▶️ Play handler
-  const handlePlay = (song: Song) => {
-    requireAuth(() => {
-      console.log("Playing song:", song);
-      // TODO: connect to audio player
-    });
-  };
+  // In Songs.tsx, update the handlePlay function:
+const handlePlay = (song: Song) => {
+  requireAuth(() => {
+    // Set the entire songs list as queue and start with clicked song
+    if (data) {
+      const allSongs = data;
+      const songIndex = allSongs.findIndex((s: Song) => s.id === song.id);
+      playerStore.setQueue(allSongs, songIndex);
+    }
+  });
+};
 
   // ➕ Playlist handler
   const handleAddToPlaylist = (song: Song) => {
@@ -78,9 +85,8 @@ function Songs() {
               <img
                 src={song.thumnail}
                 alt={song.title}
-                className="w-full aspect-square object-cover rounded-md"
+                className="w-full aspect-square object-cover rounded-md hover:opacity-80 transition"
               />
-
               {/* ACTION BUTTONS */}
               <div
                 className="
