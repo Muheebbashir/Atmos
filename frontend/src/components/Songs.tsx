@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchAllSongs } from "../api/songApi";
-import { useEffect } from "react";
-import { toast } from "react-hot-toast";
+//import { useEffect } from "react";
+//import { toast } from "react-hot-toast";
 import PageLoader from "./PageLoader";
 import { Play, ListPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuthUser } from "../hooks/useAuthUser";
 
 interface Song {
   id: number;
@@ -16,20 +18,50 @@ interface Song {
 }
 
 function Songs() {
-  const { data, isLoading, error, isSuccess } = useQuery({
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading: authLoading } = useAuthUser();
+
+  const { data, isLoading } = useQuery({
     queryKey: ["songs"],
     queryFn: fetchAllSongs,
   });
-  useEffect(() => {
-    if (error) {
-      toast.error("Error loading songs");
-    }
-    if (isSuccess) {
-      toast.success("Songs loaded!");
-    }
-  }, [error, isSuccess]);
+
+  /*useEffect(() => {
+    if (error) toast.error("Error loading songs");
+    if (isSuccess) toast.success("Songs loaded!");
+  }, [error, isSuccess]);*/
 
   if (isLoading) return <PageLoader />;
+
+  // 🔒 Auth guard (reusable)
+  const requireAuth = (action: () => void) => {
+    if (authLoading) return;
+
+    if (!isAuthenticated) {
+    //  toast.error("Please login to play songs");
+      navigate("/login");
+      return;
+    }
+
+    action();
+  };
+
+  // ▶️ Play handler
+  const handlePlay = (song: Song) => {
+    requireAuth(() => {
+      console.log("Playing song:", song);
+      // TODO: connect to audio player
+    });
+  };
+
+  // ➕ Playlist handler
+  const handleAddToPlaylist = (song: Song) => {
+    requireAuth(() => {
+      console.log("Add to playlist:", song);
+      // TODO: playlist logic
+    });
+  };
+
   return (
     <div>
       <h2 className="text-xl font-bold text-white mb-6 mt-4">
@@ -38,7 +70,10 @@ function Songs() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
         {data?.map((song: Song) => (
-          <div className="group  rounded-md p-4 hover:bg-[#282828] transition-colors">
+          <div
+            key={song.id}
+            className="group rounded-md p-4 hover:bg-[#282828] transition-colors"
+          >
             <div className="relative mb-4">
               <img
                 src={song.thumnail}
@@ -46,39 +81,41 @@ function Songs() {
                 className="w-full aspect-square object-cover rounded-md"
               />
 
-              {/* Action buttons */}
+              {/* ACTION BUTTONS */}
               <div
                 className="
-        absolute bottom-3 right-3
-        flex gap-2
-        opacity-0 translate-y-2
-        group-hover:opacity-100 group-hover:translate-y-0
-        transition-all duration-300
-      "
+                  absolute bottom-3 right-3
+                  flex gap-2
+                  opacity-0 translate-y-2
+                  group-hover:opacity-100 group-hover:translate-y-0
+                  transition-all duration-300
+                "
               >
-                {/* Play Button */}
+                {/* PLAY */}
                 <button
+                  onClick={() => handlePlay(song)}
                   className="
-          bg-green-500 text-black
-          rounded-full p-3
-          shadow-xl
-          hover:scale-105
-          transition
-        "
+                    bg-green-500 text-black
+                    rounded-full p-3
+                    shadow-xl
+                    hover:scale-105
+                    transition
+                  "
                 >
                   <Play size={18} fill="black" />
                 </button>
 
-                {/* Add to Playlist */}
+                {/* ADD TO PLAYLIST */}
                 <button
+                  onClick={() => handleAddToPlaylist(song)}
                   className="
-          bg-[#2a2a2a] text-white
-          rounded-full p-3
-          shadow-xl
-          hover:bg-[#3a3a3a]
-          hover:scale-105
-          transition
-        "
+                    bg-[#2a2a2a] text-white
+                    rounded-full p-3
+                    shadow-xl
+                    hover:bg-[#3a3a3a]
+                    hover:scale-105
+                    transition
+                  "
                   title="Add to playlist"
                 >
                   <ListPlus size={18} />
@@ -86,8 +123,12 @@ function Songs() {
               </div>
             </div>
 
-            <h3 className="text-white font-semibold truncate">{song.title}</h3>
-            <p className="text-sm text-gray-400 truncate">{song.description}</p>
+            <h3 className="text-white font-semibold truncate">
+              {song.title}
+            </h3>
+            <p className="text-sm text-gray-400 truncate">
+              {song.description}
+            </p>
           </div>
         ))}
       </div>
