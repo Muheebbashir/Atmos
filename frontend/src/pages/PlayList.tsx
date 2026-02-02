@@ -4,7 +4,8 @@ import {useAuthUser} from "../hooks/useAuthUser";
 import { useUserPlaylist } from "../hooks/useUserPlaylist";
 import { useQuery } from "@tanstack/react-query";
 import { fetchSongById } from "../api/songApi";
-import { usePlayerStore, type Song } from "../store/usePlayerStore";
+import { usePlayerStore } from "../store/usePlayerStore";
+import type { Song } from "../types";
 import { useAddToPlaylist } from "../hooks/useAddToPlaylist";
 import { toast } from "react-hot-toast";
 
@@ -18,7 +19,7 @@ function PlayList() {
   // Fetch all songs details from playlist IDs
   const songIds = playlistData?.playlist || [];
   
-  const { data: songsData, isLoading: songsLoading, error: songsError } = useQuery({
+  const { data: songsData, isLoading: songsLoading } = useQuery({
     queryKey: ['playlistSongs', songIds],
     queryFn: async () => {
       if (!songIds.length) return [];

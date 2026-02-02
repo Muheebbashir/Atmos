@@ -2,10 +2,11 @@ import {useQuery} from "@tanstack/react-query";
 import {fetchAlbumById} from "../api/albumApi";
 import { useParams, useNavigate } from "react-router-dom";
 import PageLoader from "../components/PageLoader";
-import { usePlayerStore, type Song } from "../store/usePlayerStore";
+import { usePlayerStore } from "../store/usePlayerStore";
+import type { Song } from "../types";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useEffect } from "react";
-import { useAddToPlaylist } from "../hooks/useAddtoPlaylist";
+import { useAddToPlaylist } from "../hooks/useAddToPlaylist";
 import { toast } from "react-hot-toast";
 import Layout from "../components/Layout";
 

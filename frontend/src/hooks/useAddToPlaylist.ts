@@ -1,11 +1,7 @@
 import {useMutation,useQueryClient} from "@tanstack/react-query";
 import {addToPlaylist} from "../api/userApi";
 import {toast} from "react-hot-toast";
-
-interface AddToPlaylistPayload {
-  songId: string;
-  token: string;
-}
+import type { AddToPlaylistPayload } from "../types";
 
 export const useAddToPlaylist = () => {
     const queryClient = useQueryClient();

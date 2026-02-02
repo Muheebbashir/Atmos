@@ -74,8 +74,8 @@ const Player = () => {
       <div className="flex items-center gap-2 sm:gap-4 min-w-0 w-full sm:w-auto justify-center sm:justify-start">
         <img src={currentSong.thumnail} alt={currentSong.title} className="w-10 h-10 sm:w-14 sm:h-14 rounded object-cover" />
         <div className="min-w-0">
-          <div className="text-white font-semibold truncate max-w-[120px] sm:max-w-none">{currentSong.title}</div>
-          <div className="text-gray-400 text-xs truncate max-w-[120px] sm:max-w-none">{currentSong.description}</div>
+          <div className="text-white font-semibold truncate max-w-30 sm:max-w-none">{currentSong.title}</div>
+          <div className="text-gray-400 text-xs truncate max-w-30 sm:max-w-none">{currentSong.description}</div>
         </div>
       </div>
 

@@ -72,7 +72,7 @@ function AdminDashboard() {
     createAlbumMutate(formData, {
       onSuccess: () => setAlbum({ title: "", description: "", thumnail: null }),
       onError: (error: unknown) => {
-        toast.error((error as any)?.response?.data?.message || "Failed to create album");
+        toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create album");
       },
     });
   };
@@ -89,7 +89,7 @@ function AdminDashboard() {
       {
         onSuccess: () => setAlbumIdToDelete(""),
         onError: (error: unknown) => {
-          toast.error((error as any)?.response?.data?.message || "Album not found or failed to delete");
+          toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Album not found or failed to delete");
         },
       }
     );
@@ -115,7 +115,7 @@ function AdminDashboard() {
           setSelectedAlbum(null);
         },
         onError: (error: unknown) => {
-          toast.error((error as any)?.response?.data?.message || "Album does not exist or failed to create song");
+          toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Album does not exist or failed to create song");
         },
       }
     );
@@ -133,7 +133,7 @@ function AdminDashboard() {
       {
         onSuccess: () => setSongIdToDelete(""),
         onError: (error: unknown) => {
-          toast.error((error as any)?.response?.data?.message || "Song not found or failed to delete");
+          toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Song not found or failed to delete");
         },
       }
     );
@@ -154,7 +154,7 @@ function AdminDashboard() {
           setThumbnail(null);
         },
         onError: (error: unknown) => {
-          toast.error((error as any)?.response?.data?.message || "Song not found or failed to upload thumbnail");
+          toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Song not found or failed to upload thumbnail");
         },
       }
     );

@@ -1,38 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchAllSongs } from "../api/songApi";
-//import { useEffect } from "react";
-//import { toast } from "react-hot-toast";
 import PageLoader from "./PageLoader";
 import { Play, ListPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { usePlayerStore } from "../store/usePlayerStore";
 import  {useAddToPlaylist}  from "../hooks/useAddToPlaylist";
-
-interface Song {
-  id: number;
-  title: string;
-  description: string;
-  album_id: number;
-  thumnail: string;
-  audio: string;
-  created_at: string;
-}
+import { useSongs } from "../hooks/useSongs";
+import type { Song } from "../types";
 
 function Songs() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, token } = useAuthUser();
   const playerStore = usePlayerStore();
   const { mutate: addToPlaylistMutate } = useAddToPlaylist();
-  const { data, isLoading } = useQuery({
-    queryKey: ["songs"],
-    queryFn: fetchAllSongs,
-  });
-
-  /*useEffect(() => {
-    if (error) toast.error("Error loading songs");
-    if (isSuccess) toast.success("Songs loaded!");
-  }, [error, isSuccess]);*/
+  const { songs, isLoading } = useSongs();
 
   if (isLoading) return <PageLoader />;
 
@@ -54,8 +34,8 @@ function Songs() {
 const handlePlay = (song: Song) => {
   requireAuth(() => {
     // Set the entire songs list as queue and start with clicked song
-    if (data) {
-      const allSongs = data;
+    if (songs) {
+      const allSongs = songs;
       const songIndex = allSongs.findIndex((s: Song) => s.id === song.id);
       playerStore.setQueue(allSongs, songIndex);
     }
@@ -77,7 +57,7 @@ const handlePlay = (song: Song) => {
       </h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-        {data?.map((song: Song) => (
+        {songs?.map((song: Song) => (
           <div
             key={song.id}
             className="group rounded-md p-4 hover:bg-[#282828] transition-colors"

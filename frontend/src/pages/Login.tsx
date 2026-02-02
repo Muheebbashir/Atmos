@@ -29,8 +29,9 @@ function Login() {
     login(
       { email, password },
       {
-        onError: (error: AxiosError) => {
-          toast.error(error?.response?.data?.message || "Login failed");
+        onError: (error: unknown) => {
+          const axiosError = error as AxiosError;
+          toast.error(axiosError?.response?.data?.message || "Login failed");
         },
         onSuccess: () => {
           toast.success("Login successful!");

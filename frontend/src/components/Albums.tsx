@@ -1,32 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchAllAlbums } from "../api/albumApi";
-//import { useEffect } from "react";
-//import { toast } from "react-hot-toast";
 import PageLoader from "./PageLoader";
 import { Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser } from "../hooks/useAuthUser";
-
-interface Album {
-  id: number;
-  title: string;
-  description: string;
-  thumnail: string;
-}
+import { useAlbums } from "../hooks/useAlbums";
+import type { Album } from "../types";
 
 function Albums() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuthUser();
-
-  const { data, isLoading } = useQuery({
-    queryKey: ["albums"],
-    queryFn: fetchAllAlbums,
-  });
-
-  /*useEffect(() => {
-    if (error) toast.error("Error loading albums");
-    if (isSuccess) toast.success("Albums loaded!");
-  }, [error, isSuccess]);*/
+  const { albums, isLoading } = useAlbums();
 
   if (isLoading) return <PageLoader />;
 
@@ -47,7 +29,6 @@ function Albums() {
   const handlePlayAlbum = (album: Album) => {
     requireAuth(() => {
       console.log("Playing album:", album);
-      // TODO: navigate to album page or start playback
        navigate(`/album/${album.id}`);
     });
   };
@@ -59,7 +40,7 @@ function Albums() {
       </h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-        {data?.map((album: Album) => (
+        {albums?.map((album: Album) => (
           <div
             key={album.id}
             className="group hover:bg-[#282828] transition-all duration-300 p-4 rounded-lg"

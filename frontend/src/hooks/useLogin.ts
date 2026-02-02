@@ -1,11 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { loginUser } from "../api/userApi";
 import { useNavigate } from "react-router-dom";
-
-interface LoginPayload {
-  email: string;
-  password: string;
-}
+import type { LoginPayload } from "../types";
 
 export const useLogin = () => {
   const queryClient = useQueryClient();

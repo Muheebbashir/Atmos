@@ -1,26 +1,5 @@
 import { create } from 'zustand';
-
-export interface Song {
-  id: number;
-  title: string;
-  description: string;
-  album_id: number;
-  thumnail: string;
-  audio: string;
-  created_at: string;
-}
-
-interface PlayerState {
-  queue: Song[];
-  currentIndex: number;
-  isPlaying: boolean;
-  setQueue: (songs: Song[], startIndex: number) => void;
-  play: () => void;
-  pause: () => void;
-  next: () => void;
-  prev: () => void;
-  seek: (index: number) => void;
-}
+import type { Song, PlayerState } from '../types';
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
   queue: [],
