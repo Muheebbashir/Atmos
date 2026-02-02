@@ -1,5 +1,5 @@
 import { usePlayerStore } from "../store/usePlayerStore";
-import { Play, Pause, SkipBack, SkipForward, Volume2 } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
 import React, { useRef, useEffect } from "react";
 
 const Player = () => {
@@ -9,12 +9,22 @@ const Player = () => {
   const [progress, setProgress] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
   const [volume, setVolume] = React.useState(1);
+  const [muted, setMuted] = React.useState(false);
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
   }, [volume]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.muted = muted;
+    }
+  }, [muted]);
+  const handleToggleMute = () => {
+    setMuted((prev) => !prev);
+  };
 
   useEffect(() => {
     if (audioRef.current) {
@@ -102,7 +112,13 @@ const Player = () => {
 
       {/* Volume */}
       <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end mt-2 sm:mt-0">
-        <Volume2 className="text-gray-300" />
+        <button onClick={handleToggleMute} aria-label={muted ? "Unmute" : "Mute"}>
+          {muted ? (
+            <VolumeX className="text-gray-300" />
+          ) : (
+            <Volume2 className="text-gray-300" />
+          )}
+        </button>
         <input
           type="range"
           min={0}
@@ -111,6 +127,7 @@ const Player = () => {
           value={volume}
           onChange={e => setVolume(Number(e.target.value))}
           className="accent-green-500 h-1 w-20 sm:w-24"
+          disabled={muted}
         />
       </div>
 

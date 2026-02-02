@@ -102,3 +102,26 @@ export const getUserProfile = asyncHandler(async (req: AuthenticatedRequest, res
         user,
     });
 });
+
+export const addToPlaylist = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const userId= req.user?._id;
+  const user= await User.findById(userId);
+  if(!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  if(user?.playlist.includes(req.params.id as string)) {
+    const index= user.playlist.indexOf(req.params.id as string);
+    user.playlist.splice(index,1);
+    await user.save();
+    return res.status(200).json({
+      message: "Song removed from playlist",
+      playlist: user.playlist,
+    });
+  }
+  user.playlist.push(req.params.id as string);
+  await user.save();
+  res.status(200).json({
+    message: "Song added to playlist",
+    playlist: user.playlist,
+  });
+});

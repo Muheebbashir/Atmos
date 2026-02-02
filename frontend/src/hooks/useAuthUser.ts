@@ -24,5 +24,6 @@ export const useAuthUser = () => {
     user: data?.user || null,
     isAuthenticated: !!data?.user,
     isLoading,
+    token,
   };
 };

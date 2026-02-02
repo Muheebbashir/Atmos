@@ -48,7 +48,7 @@ function Albums() {
     requireAuth(() => {
       console.log("Playing album:", album);
       // TODO: navigate to album page or start playback
-      // navigate(`/album/${album.id}`);
+       navigate(`/album/${album.id}`);
     });
   };
 

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Music } from "lucide-react";
+import { Music, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useLogin } from "../hooks/useLogin";
@@ -9,6 +9,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { login, isLoading } = useLogin();
 
@@ -79,13 +80,22 @@ function Login() {
               <label className="block text-sm font-bold text-white mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-3 rounded border border-gray-600 bg-black text-white placeholder-gray-500 outline-none hover:border-white focus:border-white transition"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-3 rounded border border-gray-600 bg-black text-white placeholder-gray-500 outline-none hover:border-white focus:border-white transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
 
             {/* Remember me */}

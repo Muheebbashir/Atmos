@@ -33,3 +33,12 @@ export const fetchProfile = async (token: string) => {
   return res.data;
 };
 
+export const addToPlaylist = async (token: string, songId: string) => {
+  const res = await api.get(`/users/song/${songId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
+

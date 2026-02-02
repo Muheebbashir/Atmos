@@ -7,6 +7,7 @@ import { Play, ListPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { usePlayerStore } from "../store/usePlayerStore";
+import  {useAddToPlaylist}  from "../hooks/useAddtoPlaylist";
 
 interface Song {
   id: number;
@@ -20,9 +21,9 @@ interface Song {
 
 function Songs() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading: authLoading } = useAuthUser();
+  const { isAuthenticated, isLoading: authLoading, token } = useAuthUser();
   const playerStore = usePlayerStore();
-
+  const { mutate: addToPlaylistMutate } = useAddToPlaylist();
   const { data, isLoading } = useQuery({
     queryKey: ["songs"],
     queryFn: fetchAllSongs,
@@ -66,6 +67,7 @@ const handlePlay = (song: Song) => {
     requireAuth(() => {
       console.log("Add to playlist:", song);
       // TODO: playlist logic
+      addToPlaylistMutate({ songId: song.id.toString(), token: token as string });
     });
   };
 
