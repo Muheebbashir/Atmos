@@ -141,6 +141,7 @@ export const deleteAlbum=asyncHandler(async (req: AuthenticatedRequest, res: Res
         res.status(400).json({ message: "Album does not exist" });
         return;
     }
+    
    await sql`DELETE FROM songs WHERE album_id=${id}`;
    await sql`
         DELETE FROM albums WHERE id=${id}

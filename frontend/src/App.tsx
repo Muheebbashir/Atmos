@@ -7,6 +7,7 @@ import { useAuthUser } from "./hooks/useAuthUser";
 import PageLoader from "./components/PageLoader";
 import AlbumDetails from "./pages/AlbumDetails";
 import PlayList from "./pages/PlayList";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   const { isLoading, isAuthenticated } = useAuthUser();
@@ -24,6 +25,7 @@ function App() {
         <Route path="/signup" element={isAuthenticated ? <Navigate to="/" /> : <Signup />} />
         <Route path="/album/:id"  element={isAuthenticated ? <AlbumDetails /> : <Navigate to="/login" />} />
         <Route path="/playlist" element={isAuthenticated ? <PlayList /> : <Navigate to="/login" />} />
+        <Route path="/admin/dashboard" element={isAuthenticated ? <AdminDashboard /> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to="/" />} />
 
        

@@ -5,7 +5,7 @@ import { useUserPlaylist } from "../hooks/useUserPlaylist";
 import { useQuery } from "@tanstack/react-query";
 import { fetchSongById } from "../api/songApi";
 import { usePlayerStore, type Song } from "../store/usePlayerStore";
-import { useAddToPlaylist } from "../hooks/useAddtoPlaylist";
+import { useAddToPlaylist } from "../hooks/useAddToPlaylist";
 import { toast } from "react-hot-toast";
 
 
@@ -18,19 +18,30 @@ function PlayList() {
   // Fetch all songs details from playlist IDs
   const songIds = playlistData?.playlist || [];
   
-  const { data: songsData, isLoading: songsLoading } = useQuery({
+  const { data: songsData, isLoading: songsLoading, error: songsError } = useQuery({
     queryKey: ['playlistSongs', songIds],
     queryFn: async () => {
       if (!songIds.length) return [];
-      const songPromises = songIds.map((id: string) => fetchSongById(id));
+      const songPromises = songIds.map((id: string) => 
+        fetchSongById(id).catch((error) => {
+          console.error(`Failed to fetch song ${id}:`, error);
+          return null; // Return null for failed fetches
+        })
+      );
       const results = await Promise.all(songPromises);
-      // The API returns the song object directly, not wrapped in .song
-      return results.filter((song: Song) => song !== undefined && song !== null);
+      // Filter out null values (failed fetches) and undefined
+      return results.filter((song): song is Song => song !== null && song !== undefined);
     },
     enabled: !!songIds.length,
   });
 
-  if(isLoading || songsLoading) return <PageLoader />;
+  if(isLoading || songsLoading) {
+    return (
+      <Layout>
+        <PageLoader />
+      </Layout>
+    );
+  }
 
   const songs: Song[] = songsData || [];
 
@@ -59,8 +70,8 @@ function PlayList() {
     <Layout>
       <div className="pb-32 pt-10">
         {/* Playlist Header */}
-        <div className="flex flex-col md:flex-row items-end gap-4 md:gap-6 p-4 md:p-6 bg-gradient-to-b from-purple-800/50 to-transparent rounded-lg mb-4">
-          <div className="w-32 h-32 md:w-48 md:h-48 bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center rounded-md shadow-2xl mx-auto md:mx-0">
+        <div className="flex flex-col md:flex-row items-end gap-4 md:gap-6 p-4 md:p-6 bg-linear-to-b from-purple-800/50 to-transparent rounded-lg mb-4">
+          <div className="w-32 h-32 md:w-48 md:h-48 bg-linear-to-br from-purple-600 to-blue-600 flex items-center justify-center rounded-md shadow-2xl mx-auto md:mx-0">
             <svg className="w-16 h-16 md:w-24 md:h-24 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
             </svg>
@@ -111,7 +122,7 @@ function PlayList() {
                     <img
                       src={song.thumnail}
                       alt={song.title}
-                      className="w-10 h-10 md:w-12 md:h-12 rounded object-cover flex-shrink-0"
+                      className="w-10 h-10 md:w-12 md:h-12 rounded object-cover shrink-0"
                     />
                     <div className="min-w-0 flex-1">
                       <div className="font-medium text-white text-sm md:text-base truncate">{song.title}</div>
