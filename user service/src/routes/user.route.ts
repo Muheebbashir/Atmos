@@ -75,7 +75,7 @@
  *                   type: string
  */
 import express from 'express';
-import { registerUser,loginUser, getUserProfile, addToPlaylist } from '../controllers/user.controller.js';
+import { registerUser,loginUser, getUserProfile, addToPlaylist, getUserPlaylist } from '../controllers/user.controller.js';
 import { verifyJWT } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -148,5 +148,6 @@ router.route("/register").post(registerUser);
 router.route("/login").post(loginUser); 
 router.route("/profile").get(verifyJWT, getUserProfile);
 router.route("/song/:id").get(verifyJWT, addToPlaylist);
+router.route("/playlist").get(verifyJWT, getUserPlaylist);
 
 export default router;

@@ -14,6 +14,7 @@ export const useAddToPlaylist = () => {
         onSuccess: (data) => {
             toast.success(data.message || "Song added to playlist");
             queryClient.invalidateQueries({queryKey: ['userPlaylist']});
+            queryClient.invalidateQueries({queryKey: ['playlistSongs']});
         },
     });
     return {mutate,isPending,error};

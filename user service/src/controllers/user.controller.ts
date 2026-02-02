@@ -125,3 +125,15 @@ export const addToPlaylist = asyncHandler(async (req: AuthenticatedRequest, res:
     playlist: user.playlist,
   });
 });
+
+export const getUserPlaylist = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const userId= req.user?._id;
+  const user= await User.findById(userId);
+  if(!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  res.status(200).json({
+    message: "User playlist fetched successfully",
+    playlist: user.playlist,
+  });
+});
