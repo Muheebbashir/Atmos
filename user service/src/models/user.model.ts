@@ -27,8 +27,6 @@ const UserSchema: Schema = new Schema<IUser>(
     role: { type: String, default: "user" },
     playlist: [{ type: String, required: true }],
     emailVerified: { type: Boolean, default: false },
-    otp: { type: String },
-    otpExpires: { type: Date },
   },
   {
     timestamps: true,
