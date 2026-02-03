@@ -9,6 +9,7 @@ import AlbumDetails from "./pages/AlbumDetails";
 import PlayList from "./pages/PlayList";
 import AdminDashboard from "./pages/AdminDashboard";
 import ForgotPassword from "./pages/ForgotPassword";
+import SongDetails from "./pages/SongDetails";
 
 function App() {
   const { isLoading, isAuthenticated } = useAuthUser();
@@ -25,6 +26,7 @@ function App() {
         <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
         <Route path="/signup" element={isAuthenticated ? <Navigate to="/" /> : <Signup />} />
         <Route path="/album/:id"  element={isAuthenticated ? <AlbumDetails /> : <Navigate to="/login" />} />
+        <Route path="/song/:id"  element={isAuthenticated ? <SongDetails /> : <Navigate to="/login" />} />
         <Route path="/playlist" element={isAuthenticated ? <PlayList /> : <Navigate to="/login" />} />
         <Route path="/admin/dashboard" element={isAuthenticated ? <AdminDashboard /> : <Navigate to="/login" />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

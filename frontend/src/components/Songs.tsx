@@ -59,7 +59,8 @@ const handlePlay = (song: Song) => {
         {songs?.map((song: Song) => (
           <div
             key={song.id}
-            className="group rounded-md p-4 hover:bg-[#282828] transition-colors"
+            onClick={() => navigate(`/song/${song.id}`)}
+            className="group rounded-md p-4 hover:bg-[#282828] transition-colors cursor-pointer"
           >
             <div className="relative mb-4">
               <img
@@ -109,7 +110,9 @@ const handlePlay = (song: Song) => {
               </div>
             </div>
 
-            <h3 className="text-white font-semibold truncate">
+            <h3 
+              className="text-white font-semibold truncate hover:text-green-500 transition"
+            >
               {song.title}
             </h3>
             <p className="text-sm text-gray-400 truncate">
