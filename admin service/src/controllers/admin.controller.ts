@@ -88,7 +88,8 @@ export const addSong=asyncHandler(async (req: AuthenticatedRequest, res: Respons
     `;
     if(redisClient.isReady){
          await redisClient.del("songs");
-         console.log("Songs cache cleared");
+         await redisClient.del(`album_${album_id}`);
+         console.log("Songs and album cache cleared");
     }
     res.status(201).json({ message: "Song added successfully", song: result[0] });
 });
@@ -124,7 +125,8 @@ export const addThumbnail=asyncHandler(async (req: AuthenticatedRequest, res: Re
     `;
     if(redisClient.isReady){
          await redisClient.del("songs");
-         console.log("Songs cache cleared");
+         await redisClient.del(`album_${result[0].album_id}`);
+         console.log("Songs and album cache cleared");
     }
     res.status(200).json({ message: "Thumbnail added successfully", song: result[0] });
 });
@@ -169,12 +171,13 @@ export const deleteSong=asyncHandler(async (req: AuthenticatedRequest, res: Resp
     if(song.length===0){
         res.status(400).json({ message: "Song does not exist" });
         return;
-    }
+    const albumId = song[0].album_id;
     await sql`DELETE FROM songs WHERE id=${id}`;
 
     if(redisClient.isReady){
          await redisClient.del("songs");
-         console.log("Songs cache cleared");
+         await redisClient.del(`album_${albumId}`);
+         console.log("Songs and album cache cleared");
     }
     res.status(200).json({ message: "Song deleted successfully" });
 });

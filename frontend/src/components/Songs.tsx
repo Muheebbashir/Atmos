@@ -45,7 +45,6 @@ const handlePlay = (song: Song) => {
   // ➕ Playlist handler
   const handleAddToPlaylist = (song: Song) => {
     requireAuth(() => {
-      // TODO: playlist logic
       addToPlaylistMutate({ songId: song.id.toString(), token: token as string });
     });
   };

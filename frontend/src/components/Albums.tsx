@@ -28,7 +28,6 @@ function Albums() {
   // ▶️ play album
   const handlePlayAlbum = (album: Album) => {
     requireAuth(() => {
-      console.log("Playing album:", album);
        navigate(`/album/${album.id}`);
     });
   };
