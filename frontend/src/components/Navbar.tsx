@@ -2,10 +2,13 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import ConfirmLogout from "./ConfirmLogout";
 
 function Navbar() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const { isAuthenticated, isLoading } = useAuthUser();
 
@@ -83,7 +86,7 @@ function Navbar() {
 
           {!isLoading && isAuthenticated && (
             <button
-              onClick={handleLogout}
+              onClick={() => setIsLogoutConfirmOpen(true)}
               className="bg-white text-black px-6 py-1.5 rounded-full hover:scale-105 transition font-bold cursor-pointer"
             >
               Logout
@@ -110,6 +113,13 @@ function Navbar() {
           Playlist
         </button>
       </div>
+      <ConfirmLogout
+        isOpen={isLogoutConfirmOpen}
+        title="Confirm Logout"
+        message="Are you sure you want to logout?"
+        onConfirm={handleLogout}
+        onCancel={() => setIsLogoutConfirmOpen(false)}
+      />
     </>
   );
 }
