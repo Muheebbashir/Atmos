@@ -127,12 +127,12 @@ function Login() {
 
             {/* Forgot Password */}
             <div className="text-center pt-4">
-              <a
-                href="#"
+              <Link
+                to="/forgot-password"
                 className="text-white hover:text-green-500 underline text-sm font-medium"
               >
                 Forgot your password?
-              </a>
+              </Link>
             </div>
           </form>
 

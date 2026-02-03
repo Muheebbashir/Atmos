@@ -7,8 +7,6 @@ export interface IUser extends Document {
   role: string;
   playlist: string[];
   emailVerified: boolean;
-  otp?: string | null;
-  otpExpires?: Date | null;
 }
 
 const UserSchema: Schema = new Schema<IUser>(

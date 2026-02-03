@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 import crypto from "crypto";
 import { sendOTPEmail } from "../lib/email.js";
+import { saveOTP, getOTP, deleteOTP, incrementAttempts, getAttempts, deleteAttempts, blockUser, isUserBlocked } from "../lib/redis.js";
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
@@ -49,16 +50,17 @@ export const registerUser = asyncHandler(
     const hashedPassword = await bcrypt.hash(password, 10);
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
     
     user = new User({
       username: username.toLowerCase(),
       email,
       password: hashedPassword,
-      otp,
-      otpExpires,
     });
     await user.save();
+
+    // Save OTP to Redis (10 minutes expiry)
+    await saveOTP(`otp:${user._id}`, otp, 10);
+
     try {
       // Send OTP email
       await sendOTPEmail(email, otp);
@@ -178,25 +180,41 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
     return res.status(404).json({ message: "User not found" });
   }
 
-  // Check if OTP exists and hasn't expired
-  if (!user.otp || !user.otpExpires) {
-    return res.status(400).json({ message: "No OTP requested" });
+  // Check if user is blocked
+  const isBlocked = await isUserBlocked(`otpBlock:${userId}`);
+  if (isBlocked) {
+    return res.status(429).json({ message: "Too many failed attempts. Try again later." });
   }
 
-  if (user.otpExpires < new Date()) {
-    return res.status(400).json({ message: "OTP has expired" });
+  // Get OTP from Redis
+  const storedOtp = await getOTP(`otp:${userId}`);
+  if (!storedOtp) {
+    return res.status(400).json({ message: "OTP has expired or not requested" });
   }
 
   // Verify OTP
-  if (user.otp !== otp) {
-    return res.status(400).json({ message: "Invalid OTP" });
+  if (storedOtp !== otp) {
+    // Increment failed attempts
+    const attempts = await incrementAttempts(`otpAttempt:${userId}`);
+    
+    if (attempts >= 3) {
+      // Block user for 15 minutes
+      await blockUser(`otpBlock:${userId}`, 15);
+      await deleteAttempts(`otpAttempt:${userId}`);
+      return res.status(429).json({ message: "Too many failed attempts. Try again in 15 minutes." });
+    }
+    
+    return res.status(400).json({ 
+      message: "Invalid OTP",
+      attemptsLeft: 3 - attempts
+    });
   }
 
-  // Mark email as verified and clear OTP
+  // Mark email as verified and clear OTP from Redis
   user.emailVerified = true;
-  user.otp = null as any;
-  user.otpExpires = null as any;
   await user.save();
+  await deleteOTP(`otp:${userId}`);
+  await deleteAttempts(`otpAttempt:${userId}`);
 
   // Generate JWT token
   const token = jwt.sign(
@@ -210,5 +228,104 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
     message: "Email verified successfully",
     user: userWithoutPassword,
     token,
+  });
+});
+
+export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  // Generate 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  // Save OTP to Redis (10 minutes expiry)
+  await saveOTP(`resetOtp:${user._id}`, otp, 10);
+
+  try {
+    // Send OTP email
+    await sendOTPEmail(email, otp);
+  } catch (error) {
+    console.error("Failed to send OTP email:", error);
+    return res.status(500).json({
+      message: "Failed to send password reset code",
+    });
+  }
+  res.status(200).json({
+    message: "Password reset code sent to your email",
+    userId: user._id,
+  });
+});
+
+export const verifyResetOtp= asyncHandler(async (req: Request, res: Response) => {
+  const { userId, otp } = req.body;
+  if (!userId || !otp) {
+    return res.status(400).json({ message: "User ID and OTP are required" });
+  }
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Check if user is blocked
+  const isBlocked = await isUserBlocked(`resetOtpBlock:${userId}`);
+  if (isBlocked) {
+    return res.status(429).json({ message: "Too many failed attempts. Try again later." });
+  }
+
+  // Get OTP from Redis
+  const storedOtp = await getOTP(`resetOtp:${userId}`);
+  if (!storedOtp) {
+    return res.status(400).json({ message: "OTP has expired or not requested" });
+  }
+
+  // Verify OTP
+  if (storedOtp !== otp) {
+    // Increment failed attempts
+    const attempts = await incrementAttempts(`resetOtpAttempt:${userId}`);
+    
+    if (attempts >= 3) {
+      // Block user for 15 minutes
+      await blockUser(`resetOtpBlock:${userId}`, 15);
+      await deleteAttempts(`resetOtpAttempt:${userId}`);
+      return res.status(429).json({ message: "Too many failed attempts. Try again in 15 minutes." });
+    }
+    
+    return res.status(400).json({ 
+      message: "Invalid OTP",
+      attemptsLeft: 3 - attempts
+    });
+  }
+
+  // Clear OTP from Redis (user can now reset password)
+  await deleteOTP(`resetOtp:${userId}`);
+  await deleteAttempts(`resetOtpAttempt:${userId}`);
+
+  res.status(200).json({
+    message: "OTP verified successfully",
+  });
+});
+
+export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { userId, newPassword } = req.body;
+  if (!userId || !newPassword) {
+    return res.status(400).json({ message: "User ID and new password are required" });
+  }
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: "Password must be at least 6 characters long" });
+  }
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+  await user.save();
+  res.status(200).json({
+    message: "Password reset successfully",
   });
 });

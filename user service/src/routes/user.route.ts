@@ -75,7 +75,7 @@
  *                   type: string
  */
 import express from 'express';
-import { registerUser, loginUser, getUserProfile, addToPlaylist, getUserPlaylist, verifyOTP } from '../controllers/user.controller.js';
+import { registerUser, loginUser, getUserProfile, addToPlaylist, getUserPlaylist, verifyOTP,forgotPassword,verifyResetOtp,resetPassword } from '../controllers/user.controller.js';
 import { verifyJWT } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -150,5 +150,8 @@ router.route("/verify-otp").post(verifyOTP);
 router.route("/profile").get(verifyJWT, getUserProfile);
 router.route("/song/:id").get(verifyJWT, addToPlaylist);
 router.route("/playlist").get(verifyJWT, getUserPlaylist);
+router.post("/forgot-password", forgotPassword);
+router.post("/verify-reset-otp", verifyResetOtp);
+router.post("/reset-password", resetPassword);
 
 export default router;

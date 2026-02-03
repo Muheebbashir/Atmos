@@ -51,7 +51,22 @@ export const fetchUserPlaylist = async (token: string) => {
   return res.data;
 };
 
-export const verifyEmail = async (token: string) => {
-  const res = await api.get(`/users/verify-email?token=${token}`);
+export const verifyOTP = async (userId: string, otp: string) => {
+  const res = await api.post("/users/verify-otp", { userId, otp });
+  return res.data;
+};
+
+export const forgotPassword = async (email: string) => {
+  const res = await api.post("/users/forgot-password", { email });
+  return res.data;
+};
+
+export const verifyResetOtp = async (userId: string, otp: string) => {
+  const res = await api.post("/users/verify-reset-otp", { userId, otp });
+  return res.data;
+};
+
+export const resetPassword = async (userId: string, newPassword: string) => {
+  const res = await api.post("/users/reset-password", { userId, newPassword });
   return res.data;
 };

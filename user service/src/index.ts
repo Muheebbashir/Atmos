@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { connectDB } from './lib/db.js';
+import { getRedisClient } from './lib/redis.js';
 import userRoutes from './routes/user.route.js';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './lib/swagger.js';
@@ -21,10 +22,14 @@ app.use(cors(
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/users', userRoutes);
 
-connectDB().then(() => {
+connectDB().then(async () => {
+    // Initialize Redis connection
+    await getRedisClient();
+    console.log('✓ Redis cache connected successfully');
+    
     app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
+        console.log(`✓ Server is running on port ${PORT}`);
     });
 }).catch((error) => {
-    console.error('Failed to start server:', error);
+    console.error('✗ Failed to start server:', error);
 });
