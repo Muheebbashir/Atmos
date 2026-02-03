@@ -51,3 +51,7 @@ export const fetchUserPlaylist = async (token: string) => {
   return res.data;
 };
 
+export const verifyEmail = async (token: string) => {
+  const res = await api.get(`/users/verify-email?token=${token}`);
+  return res.data;
+};

@@ -1,12 +1,12 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { registerUser } from "../api/userApi";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
-import  type { AxiosError } from "../types/AxiosError";
+import { useState } from "react";
+import type { AxiosError } from "../types/AxiosError";
 
 export const useSignup = () => {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const { mutate: signup, isPending } = useMutation({
     mutationFn: ({
@@ -19,21 +19,24 @@ export const useSignup = () => {
       password: string;
     }) => registerUser(username, email, password),
 
-    onSuccess: (data) => {
-      // 🔐 Auto-login
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      queryClient.setQueryData(["authUser"], data.user);
-
-      toast.success("Welcome to Atmos 🎧");
-      navigate("/");
+    onSuccess: (response: unknown) => {
+      const data = response as { userId?: string; user?: { email?: string } };
+      // Backend returns: { message, user, userId }
+      const userId = data?.userId;
+      const userEmail = data?.user?.email;
+      
+      if (userId && userEmail) {
+        setUserId(userId);
+        setUserEmail(userEmail);
+        toast.success("OTP sent to your email!");
+      }
     },
 
     onError: (err: AxiosError) => {
-      toast.error(err.response?.data?.message || "Signup failed");
+      const message = (err.response?.data as unknown as { message?: string })?.message || "Signup failed";
+      toast.error(message);
     },
   });
 
-  return { signup, isPending };
+  return { signup, isPending, userId, userEmail };
 };

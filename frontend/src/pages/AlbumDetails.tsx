@@ -39,7 +39,6 @@ function AlbumDetails() {
         return;
       }
       const idx = songs.findIndex((s:Song) => s.id===song.id);
-      console.log("handlePlay called", { song, idx, songs, hasSongs: songs.length });
       if (idx === -1) {
         console.error("Song not found in album");
         return;

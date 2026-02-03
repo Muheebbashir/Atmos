@@ -4,6 +4,8 @@ import { User } from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
+import crypto from "crypto";
+import { sendOTPEmail } from "../lib/email.js";
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
@@ -34,27 +36,45 @@ export const registerUser = asyncHandler(
 
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({
-        message: "User already exists",
-      });
+      // If user exists but email not verified, delete old account and allow fresh registration
+      if (!user.emailVerified) {
+        await User.deleteOne({ _id: user._id });
+      } else {
+        // User exists and is verified
+        return res.status(400).json({
+          message: "Email already registered. Please log in.",
+        });
+      }
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    user = await User.create({
-      username,
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+    
+    user = new User({
+      username: username.toLowerCase(),
       email,
       password: hashedPassword,
+      otp,
+      otpExpires,
     });
-    // Fetch user without password
+    await user.save();
+    try {
+      // Send OTP email
+      await sendOTPEmail(email, otp);
+    } catch (error) {
+      console.error("Failed to send OTP email:", error);
+      return res.status(500).json({
+        message: "Failed to send verification code",
+      });
+    }
+
+    // Return user without password (not verified yet)
     const userWithoutPassword = await User.findById(user._id).select('-password');
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "1d" }
-    );
     res.status(201).json({
-      message: "User registered successfully",
+      message: "User registered successfully. Please verify with OTP sent to your email.",
       user: userWithoutPassword,
-      token,
+      userId: user._id,
     });
   },
 );
@@ -72,6 +92,14 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
         message: "Invalid email or password",
       });
     }
+
+    // Check if email is verified
+    if (!user.emailVerified) {
+      return res.status(400).json({
+        message: "Please verify your email first. Check your inbox for the verification code.",
+      });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if(!isPasswordValid) {
       return res.status(400).json({
@@ -135,5 +163,52 @@ export const getUserPlaylist = asyncHandler(async (req: AuthenticatedRequest, re
   res.status(200).json({
     message: "User playlist fetched successfully",
     playlist: user.playlist,
+  });
+});
+
+export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
+  const { userId, otp } = req.body;
+  
+  if (!userId || !otp) {
+    return res.status(400).json({ message: "User ID and OTP are required" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Check if OTP exists and hasn't expired
+  if (!user.otp || !user.otpExpires) {
+    return res.status(400).json({ message: "No OTP requested" });
+  }
+
+  if (user.otpExpires < new Date()) {
+    return res.status(400).json({ message: "OTP has expired" });
+  }
+
+  // Verify OTP
+  if (user.otp !== otp) {
+    return res.status(400).json({ message: "Invalid OTP" });
+  }
+
+  // Mark email as verified and clear OTP
+  user.emailVerified = true;
+  user.otp = null as any;
+  user.otpExpires = null as any;
+  await user.save();
+
+  // Generate JWT token
+  const token = jwt.sign(
+    { id: user._id, email: user.email },
+    process.env.JWT_SECRET as string,
+    { expiresIn: "1d" }
+  );
+
+  const userWithoutPassword = await User.findById(user._id).select('-password');
+  res.status(200).json({
+    message: "Email verified successfully",
+    user: userWithoutPassword,
+    token,
   });
 });

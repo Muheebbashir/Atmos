@@ -1,17 +1,23 @@
 import { Link } from "react-router-dom";
-import { Music } from "lucide-react";
+import { Music, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useSignup } from "../hooks/useSignup";
+import { useVerifyOTP } from "../hooks/useVerifyOTP";
+import { OTPModal } from "../components/OTPModal";
 import { getPasswordStrength } from "../utils/passwordStrength";
 
 function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const { signup, isPending } = useSignup();
+  const { signup, isPending, userId, userEmail } = useSignup();
+  const { mutate: verifyOTP, isPending: isVerifying } = useVerifyOTP();
   const strength = getPasswordStrength(password);
+  // Show modal when we have userId (which means signup was successful)
+  const showOTPModal = !!userId;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +38,31 @@ function Signup() {
     }
 
     signup({ username, email, password });
+  };
+
+  const handleOTPVerify = (otp: string) => {
+    if (!userId) return;
+    
+    verifyOTP(
+      { userId, otp },
+      {
+        onSuccess: (data: unknown) => {
+          const response = data as { data: { token: string; user: unknown } };
+          // Save token
+          localStorage.setItem("token", response.data.token);
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+          toast.success("Email verified! Welcome to Atmos 🎧");
+          // Redirect to home after a short delay
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 1000);
+        },
+        onError: (error: unknown) => {
+          const axiosError = error as { response?: { data?: { message?: string } } };
+          toast.error(axiosError.response?.data?.message || "Invalid OTP");
+        },
+      }
+    );
   };
 
   return (
@@ -75,13 +106,26 @@ function Signup() {
               <label className="block text-sm font-bold text-white mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-3 rounded border border-gray-600 bg-black text-white placeholder-gray-500 outline-none hover:border-white focus:border-white transition"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-3 pr-10 rounded border border-gray-600 bg-black text-white placeholder-gray-500 outline-none hover:border-white focus:border-white transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
+                </button>
+              </div>
 
               {/* Strength Meter */}
               {password && (
@@ -151,8 +195,13 @@ function Signup() {
             <div className="flex-1 border-t border-gray-600"></div>
           </div>
 
+          {/* Verification Message */}
+          <p className="text-green-400 text-center mt-4 text-sm font-medium">
+            Please check your email to verify your account
+          </p>
+
           {/* Login Link */}
-          <p className="text-base text-gray-400 text-center">
+          <p className="text-base text-gray-400 text-center mt-8">
             Already have an account?{" "}
             <Link
               to="/login"
@@ -164,6 +213,20 @@ function Signup() {
           </p>
         </div>
       </div>
+
+      {/* OTP Modal */}
+      <OTPModal
+        isOpen={showOTPModal}
+        email={userEmail || email}
+        onVerify={handleOTPVerify}
+        isLoading={isVerifying}
+        onClose={() => {
+          // Reset form
+          setEmail("");
+          setPassword("");
+          setUsername("");
+        }}
+      />
     </div>
   );
 }

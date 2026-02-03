@@ -8,6 +8,7 @@ import PageLoader from "./components/PageLoader";
 import AlbumDetails from "./pages/AlbumDetails";
 import PlayList from "./pages/PlayList";
 import AdminDashboard from "./pages/AdminDashboard";
+import VerifyEmail from "./pages/VerifyEmail";
 
 function App() {
   const { isLoading, isAuthenticated } = useAuthUser();
@@ -26,6 +27,7 @@ function App() {
         <Route path="/album/:id"  element={isAuthenticated ? <AlbumDetails /> : <Navigate to="/login" />} />
         <Route path="/playlist" element={isAuthenticated ? <PlayList /> : <Navigate to="/login" />} />
         <Route path="/admin/dashboard" element={isAuthenticated ? <AdminDashboard /> : <Navigate to="/login" />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="*" element={<Navigate to="/" />} />
 
        
