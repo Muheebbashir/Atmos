@@ -59,7 +59,7 @@ const SongDetails = () => {
           />
           <div className="flex flex-col justify-end w-full md:w-auto text-center md:text-left">
             <span className="uppercase text-xs font-bold text-green-500 tracking-widest mb-2 md:mb-3">Song</span>
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white mb-3 md:mb-4 leading-tight break-words">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white mb-3 md:mb-4 leading-tight wrap-break-words">
               {song.title}
             </h1>
             <p className="text-gray-300 text-sm md:text-base mb-4 line-clamp-3">{song.description}</p>

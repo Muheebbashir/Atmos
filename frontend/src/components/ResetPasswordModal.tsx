@@ -38,7 +38,7 @@ function ResetPasswordModal({ userId, onBack }: ResetPasswordModalProps) {
         onError: (error: unknown) => {
           const axiosError = error as AxiosError;
           const message = axiosError?.response?.data?.message || "Invalid OTP";
-          const attemptsLeft = (axiosError?.response?.data as any)?.attemptsLeft;
+          const attemptsLeft = (axiosError?.response?.data as Record<string, unknown>)?.attemptsLeft;
           
           if (attemptsLeft !== undefined) {
             toast.error(`${message} (${attemptsLeft} attempts left)`);
@@ -104,7 +104,7 @@ function ResetPasswordModal({ userId, onBack }: ResetPasswordModalProps) {
           </button>
         )}
 
-        <div className="bg-gradient-to-br from-gray-900 to-black rounded-xl p-6 sm:p-8 border border-gray-800 shadow-2xl">
+        <div className="bg-linear-to-br from-gray-900 to-black rounded-xl p-6 sm:p-8 border border-gray-800 shadow-2xl">
           {step === "otp" ? (
             <>
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Verify Code</h2>

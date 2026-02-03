@@ -67,7 +67,7 @@ function ForgotPassword() {
           </div>
 
           {/* Form Card */}
-          <div className="bg-gradient-to-br from-gray-900 to-black rounded-xl p-6 sm:p-8 border border-gray-800 shadow-2xl">
+          <div className="bg-linear-to-br from-gray-900 to-black rounded-xl p-6 sm:p-8 border border-gray-800 shadow-2xl">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-white mb-3">
