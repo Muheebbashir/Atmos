@@ -123,7 +123,7 @@ export const addThumbnail=asyncHandler(async (req: AuthenticatedRequest, res: Re
         WHERE id=${req.params.id}
         RETURNING *
     `;
-    if(redisClient.isReady){
+    if(redisClient.isReady && result[0]){
          await redisClient.del("songs");
          await redisClient.del(`album_${result[0].album_id}`);
          console.log("Songs and album cache cleared");
@@ -171,10 +171,11 @@ export const deleteSong=asyncHandler(async (req: AuthenticatedRequest, res: Resp
     if(song.length===0){
         res.status(400).json({ message: "Song does not exist" });
         return;
-    const albumId = song[0].album_id;
+    }
+    const albumId = song[0]?.album_id;
     await sql`DELETE FROM songs WHERE id=${id}`;
 
-    if(redisClient.isReady){
+    if(redisClient.isReady && albumId){
          await redisClient.del("songs");
          await redisClient.del(`album_${albumId}`);
          console.log("Songs and album cache cleared");

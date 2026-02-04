@@ -4,8 +4,11 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useSignup } from "../hooks/useSignup";
 import { useVerifyOTP } from "../hooks/useVerifyOTP";
+import { useGoogleLogin } from "../hooks/useGoogleLogin";
 import { OTPModal } from "../components/OTPModal";
 import { getPasswordStrength } from "../utils/passwordStrength";
+import { GoogleLogin } from '@react-oauth/google';
+import type { AxiosError } from "../types/AxiosError";
 
 function Signup() {
   const [email, setEmail] = useState("");
@@ -16,6 +19,7 @@ function Signup() {
 
   const { signup, isPending, userId, userEmail } = useSignup();
   const { mutate: verifyOTP, isPending: isVerifying } = useVerifyOTP();
+  const { googleLogin } = useGoogleLogin();
   const strength = getPasswordStrength(password);
   // Show modal when we have userId (which means signup was successful)
   const showOTPModal = !!userId;
@@ -198,15 +202,43 @@ function Signup() {
           {/* Divider */}
           <div className="flex items-center gap-4 my-8">
             <div className="flex-1 border-t border-gray-600"></div>
+            <span className="text-sm text-gray-400">or</span>
+            <div className="flex-1 border-t border-gray-600"></div>
           </div>
 
-          {/* Verification Message */}
-          <p className="text-green-400 text-center mt-4 text-sm font-medium">
-            Please check your email to verify your account
-          </p>
+          {/* Google Sign-In */}
+          <div className="flex justify-center mb-8">
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                if (credentialResponse.credential) {
+                  googleLogin(credentialResponse.credential, {
+                    onError: (error: unknown) => {
+                      const axiosError = error as AxiosError;
+                      const message = axiosError?.response?.data?.message;
+                      if (message?.includes("Email already registered")) {
+                        toast.error("This email is already registered. Please log in instead.");
+                      } else {
+                        toast.error(message || "Google sign-up failed");
+                      }
+                    },
+                    onSuccess: () => {
+                      toast.success("Account created with Google!");
+                    },
+                  });
+                }
+              }}
+              onError={() => {
+                toast.error("Google Sign-In failed");
+              }}
+              theme="filled_black"
+              size="large"
+              text="signup_with"
+              width="384"
+            />
+          </div>
 
           {/* Login Link */}
-          <p className="text-base text-gray-400 text-center mt-8">
+          <p className="text-base text-gray-400 text-center">
             Already have an account?{" "}
             <Link
               to="/login"

@@ -3,7 +3,9 @@ import { Music, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useLogin } from "../hooks/useLogin";
+import { useGoogleLogin } from "../hooks/useGoogleLogin";
 import type { AxiosError } from "../types/AxiosError";
+import { GoogleLogin } from '@react-oauth/google';
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -12,6 +14,7 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   const { login, isLoading } = useLogin();
+  const { googleLogin } = useGoogleLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,10 +142,38 @@ function Login() {
           {/* Divider */}
           <div className="flex items-center gap-4 my-8">
             <div className="flex-1 border-t border-gray-600"></div>
+            <span className="text-sm text-gray-400">or</span>
+            <div className="flex-1 border-t border-gray-600"></div>
+          </div>
+
+          {/* Google Sign-In */}
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                if (credentialResponse.credential) {
+                  googleLogin(credentialResponse.credential, {
+                    onError: (error: unknown) => {
+                      const axiosError = error as AxiosError;
+                      toast.error(axiosError?.response?.data?.message || "Google login failed");
+                    },
+                    onSuccess: () => {
+                      toast.success("Logged in with Google!");
+                    },
+                  });
+                }
+              }}
+              onError={() => {
+                toast.error("Google Sign-In failed");
+              }}
+              theme="filled_black"
+              size="large"
+              text="continue_with"
+              width="384"
+            />
           </div>
 
           {/* Sign Up Link */}
-          <p className="text-base text-gray-400 text-center">
+          <p className="text-base text-gray-400 text-center mt-8">
             Don't have an account?{" "}
             <Link
               to="/signup"

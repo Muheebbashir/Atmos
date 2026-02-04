@@ -3,10 +3,12 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IUser extends Document {
   username: string;
   email: string;
-  password: string;
+  password?: string;
   role: string;
   playlist: string[];
   emailVerified: boolean;
+  authProvider: "email" | "google";
+  googleId?: string;
 }
 
 const UserSchema: Schema = new Schema<IUser>(
@@ -19,12 +21,25 @@ const UserSchema: Schema = new Schema<IUser>(
     email: { type: String, required: true, unique: true, lowercase: true },
     password: {
       type: String,
-      required: true,
+      required: function(this: IUser) {
+        return this.authProvider === "email";
+      },
       minlength: [6, "Password must be at least 6 characters"],
     },
     role: { type: String, default: "user" },
     playlist: [{ type: String, required: true }],
     emailVerified: { type: Boolean, default: false },
+    authProvider: { 
+      type: String, 
+      enum: ["email", "google"], 
+      default: "email",
+      required: true 
+    },
+    googleId: { 
+      type: String, 
+      unique: true, 
+      sparse: true // allows null values and ensures uniqueness for non-null values
+    },
   },
   {
     timestamps: true,

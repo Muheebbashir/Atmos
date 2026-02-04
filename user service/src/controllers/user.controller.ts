@@ -6,6 +6,9 @@ import jwt from "jsonwebtoken";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 import { sendOTPEmail } from "../lib/email.js";
 import { saveOTP, getOTP, deleteOTP, incrementAttempts, deleteAttempts, blockUser, isUserBlocked } from "../lib/redis.js";
+import { OAuth2Client } from "google-auth-library";
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
@@ -241,6 +244,14 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
+  
+  // Prevent password reset for Google OAuth users
+  if (user.authProvider === "google") {
+    return res.status(400).json({ 
+      message: "This account uses Google Sign-In. Please login with Google.",
+      authProvider: "google"
+    });
+  }
   // Generate 6-digit OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   
@@ -320,6 +331,15 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
+  
+  // Prevent password reset for Google OAuth users
+  if (user.authProvider === "google") {
+    return res.status(400).json({ 
+      message: "This account uses Google Sign-In. Password reset is not available.",
+      authProvider: "google"
+    });
+  }
+  
   if (newPassword.length < 6) {
     return res.status(400).json({ message: "Password must be at least 6 characters long" });
   }
@@ -329,4 +349,89 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
   res.status(200).json({
     message: "Password reset successfully",
   });
+});
+
+export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
+  const { credential } = req.body;
+  
+  if (!credential) {
+    return res.status(400).json({ message: "Google credential is required" });
+  }
+
+  try {
+    // Verify Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return res.status(400).json({ message: "Invalid Google token" });
+    }
+
+    const { email, sub: googleId, name, email_verified } = payload;
+    const normalizedEmail = email.toLowerCase();
+
+    // Check if user exists
+    let user = await User.findOne({ email: normalizedEmail });
+
+    if (user) {
+      // User exists - check auth provider
+      if (user.authProvider === "email") {
+        // Email user trying to login with Google - reject
+        return res.status(400).json({
+          message: "Email already registered with email/password. Please login with your email and password.",
+          authProvider: "email"
+        });
+      } else if (user.authProvider === "google") {
+        // Existing Google user - normal login
+        const token = jwt.sign(
+          { id: user._id, email: user.email },
+          process.env.JWT_SECRET as string,
+          { expiresIn: "1d" }
+        );
+        
+        const userWithoutPassword = await User.findById(user._id).select('-password');
+        return res.status(200).json({
+          message: "Logged in successfully with Google",
+          user: userWithoutPassword,
+          token,
+        });
+      }
+    }
+
+    // New user - create account
+    const username = name?.toLowerCase().replace(/\s+/g, '') || email.split('@')[0];
+    
+    user = new User({
+      username,
+      email: normalizedEmail,
+      authProvider: "google",
+      googleId,
+      emailVerified: true, // Google already verified
+    });
+    
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1d" }
+    );
+
+    const userWithoutPassword = await User.findById(user._id).select('-password');
+    return res.status(201).json({
+      message: "Account created successfully with Google",
+      user: userWithoutPassword,
+      token,
+    });
+    
+  } catch (error: any) {
+    console.error("Google auth error:", error);
+    return res.status(500).json({ 
+      message: "Failed to authenticate with Google",
+      error: error.message 
+    });
+  }
 });

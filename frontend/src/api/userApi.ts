@@ -70,3 +70,8 @@ export const resetPassword = async (userId: string, newPassword: string) => {
   const res = await api.post("/users/reset-password", { userId, newPassword });
   return res.data;
 };
+
+export const googleLogin = async (credential: string) => {
+  const res = await api.post("/users/google-auth", { credential });
+  return res.data;
+};

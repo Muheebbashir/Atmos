@@ -75,7 +75,7 @@
  *                   type: string
  */
 import express from 'express';
-import { registerUser, loginUser, getUserProfile, addToPlaylist, getUserPlaylist, verifyOTP,forgotPassword,verifyResetOtp,resetPassword } from '../controllers/user.controller.js';
+import { registerUser, loginUser, getUserProfile, addToPlaylist, getUserPlaylist, verifyOTP,forgotPassword,verifyResetOtp,resetPassword, googleAuth } from '../controllers/user.controller.js';
 import { verifyJWT } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -146,6 +146,7 @@ const router = express.Router();
  */
 router.route("/register").post(registerUser);
 router.route("/login").post(loginUser); 
+router.route("/google-auth").post(googleAuth);
 router.route("/verify-otp").post(verifyOTP);
 router.route("/profile").get(verifyJWT, getUserProfile);
 router.route("/song/:id").get(verifyJWT, addToPlaylist);
