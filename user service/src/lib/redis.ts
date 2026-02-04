@@ -43,12 +43,6 @@ export const incrementAttempts = async (key: string) => {
   return attempts;
 };
 
-export const getAttempts = async (key: string) => {
-  const client = await getRedisClient();
-  const attempts = await client.get(key);
-  return attempts ? parseInt(attempts) : 0;
-};
-
 export const deleteAttempts = async (key: string) => {
   const client = await getRedisClient();
   await client.del(key);

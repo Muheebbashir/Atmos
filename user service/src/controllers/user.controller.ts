@@ -4,9 +4,8 @@ import { User } from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
-import crypto from "crypto";
 import { sendOTPEmail } from "../lib/email.js";
-import { saveOTP, getOTP, deleteOTP, incrementAttempts, getAttempts, deleteAttempts, blockUser, isUserBlocked } from "../lib/redis.js";
+import { saveOTP, getOTP, deleteOTP, incrementAttempts, deleteAttempts, blockUser, isUserBlocked } from "../lib/redis.js";
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
@@ -16,7 +15,6 @@ export const registerUser = asyncHandler(
         message: "Username, email, and password are required",
       });
     }
-    // Convert username to lowercase
     
     // Convert email to lowercase
     email = email && typeof email === "string" ? email.toLowerCase() : "";

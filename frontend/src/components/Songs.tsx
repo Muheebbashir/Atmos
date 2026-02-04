@@ -80,7 +80,10 @@ const handlePlay = (song: Song) => {
               >
                 {/* PLAY */}
                 <button
-                  onClick={() => handlePlay(song)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlay(song);
+                  }}
                   className="
                     bg-green-500 text-black
                     rounded-full p-3
@@ -94,7 +97,10 @@ const handlePlay = (song: Song) => {
 
                 {/* ADD TO PLAYLIST */}
                 <button
-                  onClick={() => handleAddToPlaylist(song)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddToPlaylist(song);
+                  }}
                   className="
                     bg-[#2a2a2a] text-white
                     rounded-full p-3
