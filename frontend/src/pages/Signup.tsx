@@ -12,6 +12,7 @@ function Signup() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [attemptsLeft, setAttemptsLeft] = useState<number | undefined>();
 
   const { signup, isPending, userId, userEmail } = useSignup();
   const { mutate: verifyOTP, isPending: isVerifying } = useVerifyOTP();
@@ -58,7 +59,11 @@ function Signup() {
           }, 1000);
         },
         onError: (error: unknown) => {
-          const axiosError = error as { response?: { data?: { message?: string } } };
+          const axiosError = error as { response?: { data?: { message?: string; attemptsLeft?: number } } };
+          const attempts = axiosError.response?.data?.attemptsLeft;
+          if (attempts !== undefined) {
+            setAttemptsLeft(attempts);
+          }
           toast.error(axiosError.response?.data?.message || "Invalid OTP");
         },
       }
@@ -220,11 +225,13 @@ function Signup() {
         email={userEmail || email}
         onVerify={handleOTPVerify}
         isLoading={isVerifying}
+        attemptsLeft={attemptsLeft}
         onClose={() => {
-          // Reset form
+          // Reset form and attempts
           setEmail("");
           setPassword("");
           setUsername("");
+          setAttemptsLeft(undefined);
         }}
       />
     </div>

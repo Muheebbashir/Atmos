@@ -8,9 +8,10 @@ interface OTPModalProps {
   onVerify: (otp: string) => void;
   isLoading: boolean;
   email: string;
+  attemptsLeft?: number;
 }
 
-export function OTPModal({ isOpen, onClose, onVerify, isLoading, email }: OTPModalProps) {
+export function OTPModal({ isOpen, onClose, onVerify, isLoading, email, attemptsLeft }: OTPModalProps) {
   const [otp, setOtp] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -81,6 +82,17 @@ export function OTPModal({ isOpen, onClose, onVerify, isLoading, email }: OTPMod
             {isLoading ? "Verifying..." : "Verify Code"}
           </button>
         </form>
+
+        {/* Attempts Left */}
+        {attemptsLeft !== undefined && (
+          <div className="mt-4 p-3 rounded bg-red-500/10 border border-red-500/30">
+            <p className="text-xs text-red-400 text-center font-semibold">
+              {attemptsLeft === 0 
+                ? "No attempts left. Try again later." 
+                : `${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining`}
+            </p>
+          </div>
+        )}
 
         {/* Info Text */}
         <p className="text-xs text-gray-400 text-center mt-6">

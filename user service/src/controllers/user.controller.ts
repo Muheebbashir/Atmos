@@ -199,7 +199,10 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
       // Block user for 15 minutes
       await blockUser(`otpBlock:${userId}`, 15);
       await deleteAttempts(`otpAttempt:${userId}`);
-      return res.status(429).json({ message: "Too many failed attempts. Try again in 15 minutes." });
+      return res.status(429).json({ 
+        message: "Too many failed attempts. Try again in 15 minutes.",
+        attemptsLeft: 0
+      });
     }
     
     return res.status(400).json({ 
