@@ -15,11 +15,16 @@ export const getAllAlbums = asyncHandler(async (req, res) => {
     }
     else{
     albums=await sql `SELECT * FROM albums`;
+    // Convert ispremium to isPremium for camelCase consistency
+    const albumsWithCamelCase = albums.map(album => ({
+        ...album,
+        isPremium: album.ispremium
+    }));
     if(redisClient.isReady){
         console.log("Storing albums in cache");
-        await redisClient.setEx("albums",CACHE_EXPIRY,JSON.stringify(albums));
+        await redisClient.setEx("albums",CACHE_EXPIRY,JSON.stringify(albumsWithCamelCase));
     }
-    res.status(200).json( albums );
+    res.status(200).json( albumsWithCamelCase );
     }
 });
 
@@ -36,11 +41,16 @@ export const getAllSongs = asyncHandler(async (req, res) => {
     }
     else{
     songs=await sql `SELECT * FROM songs`;
+    // Convert ispremium to isPremium for camelCase consistency
+    const songsWithCamelCase = songs.map(song => ({
+        ...song,
+        isPremium: song.ispremium
+    }));
     if(redisClient.isReady){
         console.log("Storing songs in cache");
-        await redisClient.setEx("songs",CACHE_EXPIRY,JSON.stringify(songs));
+        await redisClient.setEx("songs",CACHE_EXPIRY,JSON.stringify(songsWithCamelCase));
     }
-    res.status(200).json( songs );
+    res.status(200).json( songsWithCamelCase );
     }
 });
 
@@ -62,7 +72,10 @@ export const getAllSongsOfAlbum = asyncHandler(async (req, res) => {
         return res.status(404).json( { message: "Album not found" } );
     }
     songs=await sql `SELECT * FROM songs WHERE album_id=${id}`;
-    const response = { album: album[0], songs };
+    // Convert ispremium to isPremium for camelCase consistency
+    const albumWithCamelCase = { ...album[0], isPremium: album[0]?.ispremium ?? false };
+    const songsWithCamelCase = songs.map(song => ({ ...song, isPremium: song?.ispremium ?? false }));
+    const response = { album: albumWithCamelCase, songs: songsWithCamelCase };
     if(redisClient.isReady){
         console.log("Storing album and songs in cache");
         await redisClient.setEx(`album_${id}`,CACHE_EXPIRY,JSON.stringify(response));
@@ -77,5 +90,7 @@ export const getSingleSong = asyncHandler(async (req, res) => {
     if(song.length===0){
         return res.status(404).json( { message: "Song not found" } );
     }
-    res.status(200).json( song[0] );
+    // Convert ispremium to isPremium for camelCase consistency
+    const songWithCamelCase = { ...song[0], isPremium: song[0]?.ispremium ?? false };
+    res.status(200).json( songWithCamelCase );
 });

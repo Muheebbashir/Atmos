@@ -4,4 +4,5 @@ export interface Album {
   description: string;
   thumnail: string;
   created_at?: string;
+  isPremium: boolean;
 }

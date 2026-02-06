@@ -1,15 +1,16 @@
 import PageLoader from "./PageLoader";
-import { Play, ListPlus } from "lucide-react";
+import { Play, ListPlus, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { usePlayerStore } from "../store/usePlayerStore";
 import  {useAddToPlaylist}  from "../hooks/useAddToPlaylist";
 import { useSongs } from "../hooks/useSongs";
 import type { Song } from "../types";
+import { toast } from "react-hot-toast";
 
 function Songs() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading: authLoading, token } = useAuthUser();
+  const { isAuthenticated, isLoading: authLoading, token, user: authUser } = useAuthUser();
   const playerStore = usePlayerStore();
   const { mutate: addToPlaylistMutate } = useAddToPlaylist();
   const { songs, isLoading } = useSongs();
@@ -29,10 +30,23 @@ function Songs() {
     action();
   };
 
+  // Check if user is premium
+  const isPremiumUser = authUser?.subscriptionType === "premium" && 
+                        authUser?.subscriptionStatus === "active" &&
+                        authUser?.subscriptionEndDate &&
+                        new Date(authUser.subscriptionEndDate) > new Date();
+
   // ▶️ Play handler
   // In Songs.tsx, update the handlePlay function:
 const handlePlay = (song: Song) => {
   requireAuth(() => {
+    // Check if song is premium and user is not premium
+    if (song.isPremium && !isPremiumUser) {
+      toast.error("This is a premium song. Please upgrade to premium to listen.");
+      navigate("/pricing");
+      return;
+    }
+    
     // Set the entire songs list as queue and start with clicked song
     if (songs) {
       const allSongs = songs;
@@ -68,6 +82,15 @@ const handlePlay = (song: Song) => {
                 alt={song.title}
                 className="w-full aspect-square object-cover rounded-md hover:opacity-80 transition"
               />
+              
+              {/* PREMIUM BADGE */}
+              {song.isPremium && (
+                <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold shadow-lg">
+                  <Crown size={12} fill="black" />
+                  <span>PREMIUM</span>
+                </div>
+              )}
+              
               {/* ACTION BUTTONS */}
               <div
                 className="
@@ -101,15 +124,18 @@ const handlePlay = (song: Song) => {
                     e.stopPropagation();
                     handleAddToPlaylist(song);
                   }}
-                  className="
-                    bg-[#2a2a2a] text-white
+                  disabled={song.isPremium && !isPremiumUser}
+                  className={`
                     rounded-full p-3
                     shadow-xl
-                    hover:bg-[#3a3a3a]
                     hover:scale-105
                     transition
-                  "
-                  title="Add to playlist"
+                    ${song.isPremium && !isPremiumUser 
+                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50' 
+                      : 'bg-[#2a2a2a] text-white hover:bg-[#3a3a3a]'
+                    }
+                  `}
+                  title={song.isPremium && !isPremiumUser ? "Premium subscription required" : "Add to playlist"}
                 >
                   <ListPlus size={18} />
                 </button>

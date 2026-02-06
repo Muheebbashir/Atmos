@@ -12,6 +12,10 @@ export const useAddToPlaylist = () => {
             queryClient.invalidateQueries({queryKey: ['userPlaylist']});
             queryClient.invalidateQueries({queryKey: ['playlistSongs']});
         },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || "Failed to add song to playlist";
+            toast.error(errorMessage);
+        },
     });
     return {mutate,isPending,error};
 }

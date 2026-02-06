@@ -18,13 +18,13 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"album" | "song">("album");
 
   // Album
-  const [album, setAlbum] = useState<{ title: string; description: string; thumnail: File | null }>({ title: "", description: "", thumnail: null });
+  const [album, setAlbum] = useState<{ title: string; description: string; thumnail: File | null; isPremium: boolean }>({ title: "", description: "", thumnail: null, isPremium: false });
   const [albumIdToDelete, setAlbumIdToDelete] = useState("");
   const { mutate: createAlbumMutate, isPending: isCreatingAlbum } = useCreateAlbum(token);
   const { mutate: deleteAlbumMutate, isPending: isDeletingAlbum } = useDeleteAlbum();
 
   // Song
-  const [song, setSong] = useState<{ title: string; description: string; audio: File | null }>({ title: "", description: "", audio: null });
+  const [song, setSong] = useState<{ title: string; description: string; audio: File | null; isPremium: boolean }>({ title: "", description: "", audio: null, isPremium: false });
   const [songIdToDelete, setSongIdToDelete] = useState("");
   const [selectedAlbum, setSelectedAlbum] = useState<{ id: number; title: string; thumnail: string } | null>(null);
   const { mutate: createSongMutate, isPending: isCreatingSong } = useCreateSong();
@@ -68,9 +68,10 @@ function AdminDashboard() {
     const formData = new FormData();
     formData.append("title", album.title);
     formData.append("description", album.description);
+    formData.append("isPremium", album.isPremium.toString());
     if (album.thumnail) formData.append("thumnail", album.thumnail);
     createAlbumMutate(formData, {
-      onSuccess: () => setAlbum({ title: "", description: "", thumnail: null }),
+      onSuccess: () => setAlbum({ title: "", description: "", thumnail: null, isPremium: false }),
       onError: (error: unknown) => {
         toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create album");
       },
@@ -106,12 +107,13 @@ function AdminDashboard() {
     formData.append("title", song.title);
     formData.append("description", song.description);
     formData.append("album_id", selectedAlbum.id.toString());
+    formData.append("isPremium", song.isPremium.toString());
     if (song.audio) formData.append("audio", song.audio);
     createSongMutate(
       { token: token ?? "", songData: formData },
       {
         onSuccess: () => {
-          setSong({ title: "", description: "", audio: null });
+          setSong({ title: "", description: "", audio: null, isPremium: false });
           setSelectedAlbum(null);
         },
         onError: (error: unknown) => {
@@ -227,6 +229,21 @@ function AdminDashboard() {
                     onChange={e => setAlbum({ ...album, thumnail: e.target.files?.[0] || null })}
                     required
                   />
+                </div>
+                <div className="flex items-center gap-3 p-3 rounded bg-[#3e3e3e]">
+                  <input
+                    type="checkbox"
+                    id="albumPremium"
+                    checked={album.isPremium}
+                    onChange={e => setAlbum({ ...album, isPremium: e.target.checked })}
+                    className="w-5 h-5 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="albumPremium" className="text-white font-semibold cursor-pointer flex items-center gap-2">
+                    <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    Mark as Premium (₹99/month subscription required)
+                  </label>
                 </div>
                 <button
                   className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -348,6 +365,23 @@ function AdminDashboard() {
                   onChange={e => setSong({ ...song, audio: e.target.files?.[0] || null })}
                   required
                 />
+                
+                <div className="flex items-center gap-3 p-3 rounded bg-[#3e3e3e]">
+                  <input
+                    type="checkbox"
+                    id="songPremium"
+                    checked={song.isPremium}
+                    onChange={e => setSong({ ...song, isPremium: e.target.checked })}
+                    className="w-5 h-5 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="songPremium" className="text-white font-semibold cursor-pointer flex items-center gap-2">
+                    <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    Mark as Premium (₹99/month subscription required)
+                  </label>
+                </div>
+                
                 <button
                   className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
                   type="submit"

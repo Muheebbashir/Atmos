@@ -9,11 +9,12 @@ import { useAddToPlaylist } from "../hooks/useAddToPlaylist";
 import { toast } from "react-hot-toast";
 import { useEffect } from "react";
 import type { Song } from "../types";
+import { Crown } from "lucide-react";
 
 const SongDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated, token } = useAuthUser();
+  const { isAuthenticated, token, user: authUser } = useAuthUser();
   const playerStore = usePlayerStore();
   const { mutate: addToPlaylistMutate } = useAddToPlaylist();
 
@@ -22,6 +23,12 @@ const SongDetails = () => {
       navigate("/", { replace: true });
     }
   }, [isAuthenticated, navigate]);
+
+  // Check if user is premium
+  const isPremiumUser = authUser?.subscriptionType === "premium" && 
+                        authUser?.subscriptionStatus === "active" &&
+                        authUser?.subscriptionEndDate &&
+                        new Date(authUser.subscriptionEndDate) > new Date();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["song", id],
@@ -36,6 +43,13 @@ const SongDetails = () => {
   const song = data as Song;
 
   const handlePlay = () => {
+    // Check if song is premium and user is not premium
+    if (song.isPremium && !isPremiumUser) {
+      toast.error("This is a premium song. Please upgrade to premium to listen.");
+      navigate("/pricing");
+      return;
+    }
+    
     playerStore.setQueue([song], 0);
   };
 
@@ -52,11 +66,20 @@ const SongDetails = () => {
       <div className="pb-32 pt-10">
         {/* Song Header */}
         <div className="flex flex-col md:flex-row items-end gap-4 md:gap-6 p-4 md:p-6 bg-linear-to-b from-[#282828]/50 to-transparent rounded-lg mb-8">
-          <img
-            src={song.thumnail || "/placeholder-album.png"}
-            alt={song.title}
-            className="w-40 h-40 md:w-56 md:h-56 object-cover rounded-md shadow-2xl mx-auto md:mx-0"
-          />
+          <div className="relative">
+            <img
+              src={song.thumnail || "/placeholder-album.png"}
+              alt={song.title}
+              className="w-40 h-40 md:w-56 md:h-56 object-cover rounded-md shadow-2xl mx-auto md:mx-0"
+            />
+            {/* PREMIUM BADGE */}
+            {song.isPremium && (
+              <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold shadow-lg">
+                <Crown size={12} fill="black" />
+                <span>PREMIUM</span>
+              </div>
+            )}
+          </div>
           <div className="flex flex-col justify-end w-full md:w-auto text-center md:text-left">
             <span className="uppercase text-xs font-bold text-green-500 tracking-widest mb-2 md:mb-3">Song</span>
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white mb-3 md:mb-4 leading-tight wrap-break-words">
@@ -86,8 +109,13 @@ const SongDetails = () => {
               </button>
               <button
                 onClick={handleAddToPlaylist}
-                className="px-6 py-3 border-2 border-gray-500 hover:border-white text-white font-semibold rounded-full transition hover:bg-white/10 flex items-center gap-2"
-                title="Add to playlist"
+                disabled={song.isPremium && !isPremiumUser}
+                className={`px-6 py-3 border-2 font-semibold rounded-full transition flex items-center gap-2 ${
+                  song.isPremium && !isPremiumUser
+                    ? 'border-gray-700 text-gray-500 cursor-not-allowed opacity-50'
+                    : 'border-gray-500 hover:border-white text-white hover:bg-white/10'
+                }`}
+                title={song.isPremium && !isPremiumUser ? "Premium subscription required" : "Add to playlist"}
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <path

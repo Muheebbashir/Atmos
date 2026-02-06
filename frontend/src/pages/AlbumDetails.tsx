@@ -9,18 +9,26 @@ import { useEffect } from "react";
 import { useAddToPlaylist } from "../hooks/useAddToPlaylist";
 import { toast } from "react-hot-toast";
 import Layout from "../components/Layout";
+import { Crown } from "lucide-react";
 
 
 function AlbumDetails() {
 
     const {id}=useParams();
     const navigate = useNavigate();
-    const { isAuthenticated, token } = useAuthUser();
+    const { isAuthenticated, token, user: authUser } = useAuthUser();
     useEffect(() => {
       if (!isAuthenticated) {
         navigate("/", { replace: true });
       }
     }, [isAuthenticated, navigate]);
+    
+    // Check if user is premium
+    const isPremiumUser = authUser?.subscriptionType === "premium" && 
+                          authUser?.subscriptionStatus === "active" &&
+                          authUser?.subscriptionEndDate &&
+                          new Date(authUser.subscriptionEndDate) > new Date();
+    
     const {data,isLoading}=useQuery({
         queryKey:['albumDetails', id],
         queryFn:() => fetchAlbumById(id as string),
@@ -33,6 +41,13 @@ function AlbumDetails() {
     const album=data?.album;
     const songs=data?.songs || [];
     const handlePlay=(song: Song)=>{
+      // Check if song is premium and user is not premium
+      if (song.isPremium && !isPremiumUser) {
+        toast.error("This is a premium song. Please upgrade to premium to listen.");
+        navigate("/pricing");
+        return;
+      }
+      
       if (!songs || songs.length === 0) {
         console.error("No songs available");
         toast.error("No songs available to play");
@@ -61,11 +76,20 @@ function AlbumDetails() {
     <div className="pb-32 pt-10">
       {/* Album Header */}
       <div className="flex flex-col md:flex-row items-end gap-4 md:gap-6 p-4 md:p-6 bg-linear-to-b from-[#282828]/50 to-transparent rounded-lg mb-4">
-        <img
-          src={album?.thumnail || "/placeholder-album.png"}
-          alt={album?.title}
-          className="w-32 h-32 md:w-48 md:h-48 object-cover rounded-md shadow-2xl mx-auto md:mx-0"
-        />
+        <div className="relative">
+          <img
+            src={album?.thumnail || "/placeholder-album.png"}
+            alt={album?.title}
+            className="w-32 h-32 md:w-48 md:h-48 object-cover rounded-md shadow-2xl mx-auto md:mx-0"
+          />
+          {/* PREMIUM BADGE */}
+          {album?.isPremium && (
+            <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold shadow-lg">
+              <Crown size={12} fill="black" />
+              <span>PREMIUM</span>
+            </div>
+          )}
+        </div>
         <div className="flex flex-col justify-end w-full md:w-auto text-center md:text-left">
           <span className="uppercase text-xs font-bold text-green-500 tracking-widest mb-1 md:mb-2">Album</span>
           <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white mb-2 md:mb-3 leading-tight">{album?.title}</h1>
@@ -104,7 +128,15 @@ function AlbumDetails() {
                   className="w-10 h-10 md:w-12 md:h-12 rounded object-cover shrink-0"
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="font-medium text-white text-sm md:text-base truncate">{song.title}</div>
+                  <div className="font-medium text-white text-sm md:text-base truncate flex items-center gap-2">
+                    {song.title}
+                    {song.isPremium && (
+                      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-1.5 py-0.5 rounded text-[10px] font-bold">
+                        <Crown size={10} fill="black" />
+                        PREMIUM
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-gray-400 truncate">{song.description}</div>
                 </div>
               </div>
@@ -121,8 +153,13 @@ function AlbumDetails() {
                     e.stopPropagation();
                     handleAddToPlaylist(song);
                   }}
-                  className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-green-500 transition p-1"
-                  title="Add to playlist"
+                  disabled={song.isPremium && !isPremiumUser}
+                  className={`opacity-0 group-hover:opacity-100 transition p-1 ${
+                    song.isPremium && !isPremiumUser 
+                      ? 'text-gray-600 cursor-not-allowed' 
+                      : 'text-gray-400 hover:text-green-500'
+                  }`}
+                  title={song.isPremium && !isPremiumUser ? "Premium subscription required" : "Add to playlist"}
                 >
                   <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M17 8V6C17 4.89543 16.1046 4 15 4H5C3.89543 4 3 4.89543 3 6V14C3 15.1046 3.89543 16 5 16H10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M15 12V19M12 16H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>

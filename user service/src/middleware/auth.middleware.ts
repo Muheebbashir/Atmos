@@ -19,7 +19,8 @@ export const verifyJWT = async (req: AuthenticatedRequest, res: Response, next: 
             res.status(401).json({ message: "Unauthorized" });
             return;
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
         if (!decoded || !decoded.id) {
             res.status(401).json({ message: "Invalid token" });
             return;
@@ -33,6 +34,7 @@ export const verifyJWT = async (req: AuthenticatedRequest, res: Response, next: 
         req.user = user;
         next();
     } catch (error) {
+
         res.status(401).json({ message: "Unauthorized" });
     }
 };

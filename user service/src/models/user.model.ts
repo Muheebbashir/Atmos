@@ -9,6 +9,11 @@ export interface IUser extends Document {
   emailVerified: boolean;
   authProvider: "email" | "google";
   googleId?: string;
+  subscriptionType: "basic" | "premium";
+  subscriptionStatus: "active" | "inactive" | "cancelled" | "expired";
+  subscriptionEndDate?: Date;
+  razorpaySubscriptionId?: string;
+  razorpayCustomerId?: string;
 }
 
 const UserSchema: Schema = new Schema<IUser>(
@@ -39,6 +44,30 @@ const UserSchema: Schema = new Schema<IUser>(
       type: String, 
       unique: true, 
       sparse: true // allows null values and ensures uniqueness for non-null values
+    },
+    subscriptionType: {
+      type: String,
+      enum: ["basic", "premium"],
+      default: "basic",
+      required: true
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: ["active", "inactive", "cancelled", "expired"],
+      default: "inactive",
+      required: true
+    },
+    subscriptionEndDate: {
+      type: Date,
+      default: null
+    },
+    razorpaySubscriptionId: {
+      type: String,
+      default: null
+    },
+    razorpayCustomerId: {
+      type: String,
+      default: null
     },
   },
   {

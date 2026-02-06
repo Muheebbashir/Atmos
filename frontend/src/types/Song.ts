@@ -6,4 +6,5 @@ export interface Song {
   thumnail: string;
   audio: string;
   created_at: string;
+  isPremium: boolean;
 }

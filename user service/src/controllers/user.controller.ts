@@ -103,6 +103,12 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
       });
     }
 
+    if (!user.password) {
+      return res.status(400).json({
+        message: "Invalid account setup. Please contact support.",
+      });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if(!isPasswordValid) {
       return res.status(400).json({
@@ -111,7 +117,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     }
     const token = jwt.sign(
       { id: user._id, email: user.email },
-      process.env.JWT_SECRET as string,
+      process.env.JWT_SECRET!,
         { expiresIn: "1d" },
     );
     // Fetch user without password for response
@@ -140,6 +146,8 @@ export const addToPlaylist = asyncHandler(async (req: AuthenticatedRequest, res:
   if(!user) {
     return res.status(404).json({ message: "User not found" });
   }
+  
+  // If removing from playlist, allow it
   if(user?.playlist.includes(req.params.id as string)) {
     const index= user.playlist.indexOf(req.params.id as string);
     user.playlist.splice(index,1);
@@ -149,6 +157,35 @@ export const addToPlaylist = asyncHandler(async (req: AuthenticatedRequest, res:
       playlist: user.playlist,
     });
   }
+  
+  // Check if song exists and is premium
+  try {
+    const songResponse = await fetch(`http://localhost:8000/api/v1/song/${req.params.id}`);
+    if (!songResponse.ok) {
+      return res.status(404).json({ message: "Song not found" });
+    }
+    
+    const song = await songResponse.json();
+    
+    // If song is premium, check if user has premium subscription
+    if (song.isPremium) {
+      const isPremiumUser = user.subscriptionType === "premium" && 
+                           user.subscriptionStatus === "active" &&
+                           user.subscriptionEndDate &&
+                           new Date(user.subscriptionEndDate) > new Date();
+      
+      if (!isPremiumUser) {
+        return res.status(403).json({ 
+          message: "This is a premium song. Please upgrade to premium to add it to your playlist.",
+          requiresPremium: true
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error checking song:", error);
+    return res.status(500).json({ message: "Error verifying song" });
+  }
+  
   user.playlist.push(req.params.id as string);
   await user.save();
   res.status(200).json({
@@ -362,7 +399,7 @@ export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
     // Verify Google token
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID!,
     });
     
     const payload = ticket.getPayload();

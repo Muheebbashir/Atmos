@@ -19,7 +19,7 @@ export const addAlbum=asyncHandler(async (req: AuthenticatedRequest, res: Respon
         return;
    }
 
-   const {title,description} = req.body;
+   const {title,description, isPremium} = req.body;
 
 
    const file = req.file;
@@ -39,9 +39,11 @@ export const addAlbum=asyncHandler(async (req: AuthenticatedRequest, res: Respon
         folder:"albums",
     });
 
+    const premiumStatus = isPremium === 'true' || isPremium === true;
+
     const result=await sql`
-        INSERT INTO albums (title, description, thumnail)
-        VALUES (${title}, ${description}, ${uploadResult.secure_url})
+        INSERT INTO albums (title, description, thumnail, isPremium)
+        VALUES (${title}, ${description}, ${uploadResult.secure_url}, ${premiumStatus})
         RETURNING *
     `;
     if(redisClient.isReady){
@@ -58,7 +60,7 @@ export const addSong=asyncHandler(async (req: AuthenticatedRequest, res: Respons
         res.status(403).json({ message: "Forbidden" });
         return;
    }
-    const {title,description,album_id} = req.body;
+    const {title,description,album_id, isPremium} = req.body;
     const isAlbumExist=await sql`
         SELECT * FROM albums WHERE id=${album_id}
     `;
@@ -81,9 +83,12 @@ export const addSong=asyncHandler(async (req: AuthenticatedRequest, res: Respons
         folder:"songs",
         resource_type: "video",
     });
+    
+    const premiumStatus = isPremium === 'true' || isPremium === true;
+    
     const result=await sql`
-        INSERT INTO songs (title, description, audio, album_id)
-        VALUES (${title}, ${description}, ${uploadResult.secure_url}, ${album_id})
+        INSERT INTO songs (title, description, audio, album_id, isPremium)
+        VALUES (${title}, ${description}, ${uploadResult.secure_url}, ${album_id}, ${premiumStatus})
         RETURNING *
     `;
     if(redisClient.isReady){

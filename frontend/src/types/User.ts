@@ -6,6 +6,11 @@ export interface User {
   playlist: string[];
   createdAt?: string;
   updatedAt?: string;
+  subscriptionType: "basic" | "premium";
+  subscriptionStatus: "active" | "inactive" | "cancelled" | "expired";
+  subscriptionEndDate?: string;
+  razorpaySubscriptionId?: string;
+  razorpayCustomerId?: string;
 }
 
 export interface AuthUser {

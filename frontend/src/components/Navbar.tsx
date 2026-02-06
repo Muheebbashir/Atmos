@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Crown } from "lucide-react";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -10,7 +10,13 @@ function Navbar() {
   const queryClient = useQueryClient();
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
-  const { isAuthenticated, isLoading } = useAuthUser();
+  const { isAuthenticated, isLoading, user: authUser } = useAuthUser();
+
+  // Check if user is premium
+  const isPremiumUser = authUser?.subscriptionType === "premium" && 
+                        authUser?.subscriptionStatus === "active" &&
+                        authUser?.subscriptionEndDate &&
+                        new Date(authUser.subscriptionEndDate) > new Date();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -43,9 +49,19 @@ function Navbar() {
         <div className="flex items-center gap-6 text-sm font-medium">
           {/* TEXT LINKS */}
           <div className="hidden md:flex items-center gap-5 text-gray-400">
-            <span className="cursor-pointer hover:text-white transition">
-              Premium
-            </span>
+            {isAuthenticated && isPremiumUser ? (
+              <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-3 py-1 rounded-full font-bold cursor-pointer hover:scale-105 transition">
+                <Crown size={14} fill="black" />
+                <span>Premium</span>
+              </div>
+            ) : (
+              <span 
+                onClick={() => navigate("/pricing")}
+                className="cursor-pointer hover:text-white transition"
+              >
+                Premium
+              </span>
+            )}
             <span className="cursor-pointer hover:text-white transition">
               Support
             </span>

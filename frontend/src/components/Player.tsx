@@ -1,15 +1,27 @@
 import { usePlayerStore } from "../store/usePlayerStore";
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
 import React, { useRef, useEffect } from "react";
+import { useAuthUser } from "../hooks/useAuthUser";
+import { useNavigate } from "react-router-dom";
+import type { Song } from "../types";
+import { toast } from "react-hot-toast";
 
 const Player = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const { queue, currentIndex, isPlaying, play, pause, next, prev } = usePlayerStore();
+  const navigate = useNavigate();
+  const { queue, currentIndex, isPlaying, play, pause, next, prev, seek } = usePlayerStore();
+  const { user: authUser } = useAuthUser();
   const currentSong = queue[currentIndex];
   const [progress, setProgress] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
   const [volume, setVolume] = React.useState(1);
   const [muted, setMuted] = React.useState(false);
+
+  // Check if user is premium
+  const isPremiumUser = authUser?.subscriptionType === "premium" && 
+                        authUser?.subscriptionStatus === "active" &&
+                        authUser?.subscriptionEndDate &&
+                        new Date(authUser.subscriptionEndDate) > new Date();
 
   useEffect(() => {
     if (audioRef.current) {
@@ -63,7 +75,72 @@ const Player = () => {
   };
 
   const handleEnded = () => {
+    handleNext();
+  };
+
+  // Handle next with premium check - skip premium songs for non-premium users
+  const handleNext = () => {
+    let nextIndex = currentIndex + 1;
+    
+    // If at the end of queue, stop
+    if (nextIndex >= queue.length) {
+      pause();
+      return;
+    }
+
+    // If user is not premium, skip over premium songs
+    if (!isPremiumUser) {
+      while (nextIndex < queue.length) {
+        const nextSong = queue[nextIndex] as Song;
+        
+        // If song is not premium or user is premium, play it
+        if (!nextSong.isPremium) {
+          seek(nextIndex);
+          return;
+        }
+        
+        // Otherwise, skip to next song
+        nextIndex++;
+      }
+      
+      // If we've reached the end and all remaining songs are premium
+      toast.error("All remaining songs are premium. Please upgrade to continue.");
+      pause();
+      return;
+    }
+    
+    // User is premium, play next song normally
     next();
+  };
+
+  // Handle previous with premium check - skip premium songs for non-premium users
+  const handlePrev = () => {
+    if (currentIndex === 0) return;
+    
+    let prevIndex = currentIndex - 1;
+    
+    // If user is not premium, skip over premium songs
+    if (!isPremiumUser) {
+      while (prevIndex >= 0) {
+        const prevSong = queue[prevIndex] as Song;
+        
+        // If song is not premium or user is premium, play it
+        if (!prevSong.isPremium) {
+          seek(prevIndex);
+          return;
+        }
+        
+        // Otherwise, skip to previous song
+        prevIndex--;
+      }
+      
+      // If we've reached the beginning and all previous songs are premium
+      toast.error("All previous songs are premium. Please upgrade to listen.");
+      return;
+    }
+    
+    // User is premium, play previous song normally
+    prev();
   };
 
   if (!currentSong) return null;
@@ -82,14 +159,14 @@ const Player = () => {
       {/* Controls */}
       <div className="flex flex-col items-center flex-1 max-w-xl mx-0 sm:mx-8 w-full sm:w-auto">
         <div className="flex items-center gap-4 sm:gap-6 mb-1 justify-center">
-          <button onClick={prev} className="text-gray-300 hover:text-white"><SkipBack size={22} /></button>
+          <button onClick={handlePrev} className="text-gray-300 hover:text-white"><SkipBack size={22} /></button>
           <button
             onClick={handlePlayPause}
             className="bg-white text-black rounded-full p-2 mx-2 hover:scale-105 transition shadow-lg"
           >
             {isPlaying ? <Pause size={22} /> : <Play size={22} />}
           </button>
-          <button onClick={next} className="text-gray-300 hover:text-white"><SkipForward size={22} /></button>
+          <button onClick={handleNext} className="text-gray-300 hover:text-white"><SkipForward size={22} /></button>
         </div>
         {/* Progress Bar */}
         <div className="flex items-center gap-2 w-full">

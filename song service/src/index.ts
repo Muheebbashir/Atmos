@@ -11,8 +11,8 @@ dotenv.config();
 export const redisClient = redis.createClient({
   password: process.env.REDIS_PASSWORD || "",
   socket: {
-    host: "redis-19030.crce263.ap-south-1-1.ec2.cloud.redislabs.com",
-    port: 19030
+    host: process.env.REDIS_HOST || "redis-19030.crce263.ap-south-1-1.ec2.cloud.redislabs.com",
+    port: parseInt(process.env.REDIS_PORT || "19030")
   }
 });
 
@@ -25,7 +25,7 @@ redisClient.connect().then(() => {
 const app = express();
 app.use(express.json());
 app.use(cors({
-    origin: '*',
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true,
 }));
 

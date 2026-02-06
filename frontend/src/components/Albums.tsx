@@ -1,13 +1,14 @@
 import PageLoader from "./PageLoader";
-import { Play } from "lucide-react";
+import { Play, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser } from "../hooks/useAuthUser";
 import { useAlbums } from "../hooks/useAlbums";
 import type { Album } from "../types";
+import { toast } from "react-hot-toast";
 
 function Albums() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading: authLoading } = useAuthUser();
+  const { isAuthenticated, isLoading: authLoading, user: authUser } = useAuthUser();
   const { albums, isLoading } = useAlbums();
 
   if (isLoading) return <PageLoader />;
@@ -25,10 +26,23 @@ function Albums() {
     action();
   };
 
+  // Check if user is premium
+  const isPremiumUser = authUser?.subscriptionType === "premium" && 
+                        authUser?.subscriptionStatus === "active" &&
+                        authUser?.subscriptionEndDate &&
+                        new Date(authUser.subscriptionEndDate) > new Date();
+
   // ▶️ play album
   const handlePlayAlbum = (album: Album) => {
     requireAuth(() => {
-       navigate(`/album/${album.id}`);
+      // Check if album is premium and user is not premium
+      if (album.isPremium && !isPremiumUser) {
+        toast.error("This is a premium album. Please upgrade to premium to listen.");
+        navigate("/pricing");
+        return;
+      }
+      
+      navigate(`/album/${album.id}`);
     });
   };
 
@@ -51,6 +65,14 @@ function Albums() {
                 alt={album.title}
                 className="w-full aspect-square object-cover rounded mb-2"
               />
+
+              {/* PREMIUM BADGE */}
+              {album.isPremium && (
+                <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold shadow-lg">
+                  <Crown size={12} fill="black" />
+                  <span>PREMIUM</span>
+                </div>
+              )}
 
               {/* PLAY BUTTON */}
               <button
