@@ -52,11 +52,12 @@ function Albums() {
         Featured Charts
       </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-5">
         {albums?.map((album: Album) => (
           <div
             key={album.id}
-            className="group hover:bg-[#282828] transition-all duration-300 p-4 rounded-lg"
+            onClick={() => requireAuth(() => navigate(`/album/${album.id}`))}
+            className="group hover:bg-[#282828] transition-all duration-300 p-2 sm:p-4 rounded-lg cursor-pointer"
           >
             {/* Image */}
             <div className="relative mb-4">
@@ -74,10 +75,14 @@ function Albums() {
                 </div>
               )}
 
-              {/* PLAY BUTTON */}
+              {/* PLAY BUTTON - Desktop only */}
               <button
-                onClick={() => handlePlayAlbum(album)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePlayAlbum(album);
+                }}
                 className="
+                  hidden lg:block
                   absolute bottom-3 right-3
                   bg-green-500 text-black
                   rounded-full p-3
@@ -92,11 +97,11 @@ function Albums() {
             </div>
 
             {/* TEXT */}
-            <h3 className="font-semibold text-lg text-white wrap-break-words">
+            <h3 className="font-semibold text-sm text-white truncate mb-1">
               {album.title}
             </h3>
 
-            <p className="text-sm text-gray-300 wrap-break-words">
+            <p className="text-xs text-gray-400 line-clamp-2">
               {album.description}
             </p>
           </div>

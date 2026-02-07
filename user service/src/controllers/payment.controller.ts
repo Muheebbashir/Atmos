@@ -148,33 +148,4 @@ export const getSubscriptionStatus = async (req: any, res: Response) => {
   }
 };
 
-// Cancel Subscription
-export const cancelSubscription = async (req: any, res: Response) => {
-  try {
-    const userId = req.user._id;
-    const user = await User.findById(userId);
 
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
-    if (user.subscriptionStatus !== "active") {
-      res.status(400).json({ message: "No active subscription to cancel" });
-      return;
-    }
-
-    // Update user subscription status
-    user.subscriptionStatus = "cancelled";
-    user.subscriptionType = "basic";
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Subscription cancelled successfully. You now have basic access.",
-    });
-  } catch (error: any) {
-    console.error("Cancel subscription error:", error);
-    res.status(500).json({ message: "Failed to cancel subscription", error: error.message });
-  }
-};

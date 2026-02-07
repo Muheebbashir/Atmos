@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Music, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useLogin } from "../hooks/useLogin";
@@ -48,8 +48,12 @@ function Login() {
       {/* Header */}
       <header className="py-8 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-2">
-            <Music className="text-white" size={40} />
+          <div className="flex items-center gap-3">
+            <img 
+              src="/logo.png" 
+              alt="Atmos Premium" 
+              className="w-12 h-12 object-contain"
+            />
             <h1 className="text-3xl font-bold text-white">Atmos</h1>
           </div>
         </div>

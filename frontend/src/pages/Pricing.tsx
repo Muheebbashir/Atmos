@@ -1,147 +1,30 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser } from "../hooks/useAuthUser";
-import axios from "axios";
-
-declare global {
-  interface Window {
-    Razorpay: unknown;
-  }
-}
+import { useSubscribe } from "../hooks/useSubscribe";
+import { toast } from "react-hot-toast";
 
 const Pricing = () => {
   const navigate = useNavigate();
   const { user: authUser, isLoading } = useAuthUser();
-  const [loading, setLoading] = useState(false);
+  const { subscribe, isLoading: subscribeLoading } = useSubscribe();
 
-  useEffect(() => {
-    // Load Razorpay script
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  const handleSubscribe = async () => {
+  const handleSubscribe = () => {
     if (!authUser) {
       navigate("/login");
       return;
     }
 
-    setLoading(true);
-
-    try {
-      // Create subscription order
-      const { data } = await axios.post(
-        "http://localhost:3000/api/payment/create-subscription",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      const options = {
-        key: data.key_id,
-        amount: data.order.amount,
-        currency: data.order.currency,
-        name: "Spotify Clone Premium",
-        description: "Monthly Premium Subscription",
-        order_id: data.order.id,
-        handler: async function (response: unknown) {
-          try {
-            // Verify payment on backend
-            const verifyResponse = await axios.post(
-              "http://localhost:3000/api/payment/verify-payment",
-              {
-                razorpay_order_id: (response as { razorpay_order_id: string }).razorpay_order_id,
-                razorpay_payment_id: (response as { razorpay_payment_id: string }).razorpay_payment_id,
-                razorpay_signature: (response as { razorpay_signature: string }).razorpay_signature,
-              },
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              }
-            );
-
-            if (verifyResponse.data.success) {
-              alert("Payment successful! You are now a premium user.");
-              window.location.href = "/"; // Refresh to update user data
-            }
-          } catch (error: unknown) {
-            console.error("Payment verification error:", error);
-            alert("Payment verification failed. Please contact support.");
-          }
-        },
-        prefill: {
-          name: data.user.name,
-          email: data.user.email,
-        },
-        notes: {
-          address: "Spotify Clone",
-        },
-        theme: {
-          color: "#1DB954",
-        },
-        modal: {
-          ondismiss: function () {
-            setLoading(false);
-          },
-        },
-      };
-
-      const rzp = new (window.Razorpay as new (options: unknown) => {
-        open(): void;
-        on(event: string, callback: (response: unknown) => void): void;
-      })(options);
-      rzp.on("payment.failed", function (response: unknown) {
-        alert("Payment failed: " + (response as { error?: { description?: string } }).error?.description);
-        setLoading(false);
-      });
-
-      rzp.open();
-      setLoading(false);
-    } catch (error: unknown) {
-      console.error("Subscription error:", error);
-      alert((error as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to create subscription");
-      setLoading(false);
-    }
-  };
-
-  const handleCancelSubscription = async () => {
-    if (!confirm("Are you sure you want to cancel your premium subscription?")) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login first");
+      navigate("/login");
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const { data } = await axios.delete(
-        "http://localhost:3000/api/payment/cancel-subscription",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      if (data.success) {
-        alert(data.message);
-        window.location.href = "/"; // Refresh to update user data
-      }
-    } catch (error: unknown) {
-      console.error("Cancel subscription error:", error);
-      alert((error as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to cancel subscription");
-    } finally {
-      setLoading(false);
-    }
+    subscribe(token, authUser.username, authUser.email);
   };
+
+  const loading = subscribeLoading;
 
   if (isLoading) {
     return (
@@ -157,16 +40,16 @@ const Pricing = () => {
     new Date(authUser.subscriptionEndDate) > new Date();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white py-8 sm:py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl md:text-5xl font-bold text-center mb-4">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-4">
           Choose Your Music Plan
         </h1>
-        <p className="text-gray-400 text-center mb-12">
+        <p className="text-gray-400 text-center mb-8 sm:mb-12 text-sm sm:text-base">
           Unlock premium features and enjoy unlimited music
         </p>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
           {/* Basic Plan */}
           <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 hover:border-gray-600 transition-all">
             <div className="text-center mb-6">
@@ -250,7 +133,7 @@ const Pricing = () => {
           </div>
 
           {/* Premium Plan */}
-          <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-2xl p-8 border-2 border-green-500 relative transform md:scale-105 shadow-2xl">
+          <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-2xl p-6 sm:p-8 border-2 border-green-500 relative transform md:scale-105 shadow-2xl">
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-4 py-1 rounded-full text-sm font-bold">
               POPULAR
             </div>
@@ -335,16 +218,9 @@ const Pricing = () => {
                 </div>
                 {authUser?.subscriptionEndDate && (
                   <p className="text-center text-sm text-green-100">
-                    Renews on {new Date(authUser.subscriptionEndDate).toLocaleDateString()}
+                    Valid until {new Date(authUser.subscriptionEndDate).toLocaleDateString()}
                   </p>
                 )}
-                <button
-                  onClick={handleCancelSubscription}
-                  disabled={loading}
-                  className="w-full py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? "Processing..." : "Cancel Subscription"}
-                </button>
               </div>
             ) : (
               <button
@@ -358,9 +234,9 @@ const Pricing = () => {
           </div>
         </div>
 
-        <div className="mt-16 text-center">
-          <h3 className="text-2xl font-bold mb-6">Payment Methods Supported</h3>
-          <div className="flex flex-wrap justify-center gap-6 text-gray-400">
+        <div className="mt-12 sm:mt-16 text-center">
+          <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Payment Methods Supported</h3>
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-gray-400 text-xs sm:text-sm">
             <div className="flex items-center gap-2">
               <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" />

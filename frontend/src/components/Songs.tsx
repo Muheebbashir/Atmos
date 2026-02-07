@@ -69,12 +69,12 @@ const handlePlay = (song: Song) => {
         Today's Biggest Hits
       </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6">
         {songs?.map((song: Song) => (
           <div
             key={song.id}
             onClick={() => navigate(`/song/${song.id}`)}
-            className="group rounded-md p-4 hover:bg-[#282828] transition-colors cursor-pointer"
+            className="group rounded-md p-2 sm:p-4 hover:bg-[#282828] transition-colors cursor-pointer"
           >
             <div className="relative mb-4">
               <img
@@ -91,11 +91,12 @@ const handlePlay = (song: Song) => {
                 </div>
               )}
               
-              {/* ACTION BUTTONS */}
+              {/* ACTION BUTTONS - Desktop only */}
               <div
                 className="
+                  hidden lg:flex
                   absolute bottom-3 right-3
-                  flex gap-2
+                  gap-2
                   opacity-0 translate-y-2
                   group-hover:opacity-100 group-hover:translate-y-0
                   transition-all duration-300
@@ -143,11 +144,11 @@ const handlePlay = (song: Song) => {
             </div>
 
             <h3 
-              className="text-white font-semibold truncate hover:text-green-500 transition"
+              className="text-white font-semibold text-sm truncate mb-1 hover:text-green-500 transition"
             >
               {song.title}
             </h3>
-            <p className="text-sm text-gray-400 truncate">
+            <p className="text-xs text-gray-400 line-clamp-2">
               {song.description}
             </p>
           </div>

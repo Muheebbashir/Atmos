@@ -65,7 +65,7 @@ const SongDetails = () => {
     <Layout>
       <div className="pb-32 pt-10">
         {/* Song Header */}
-        <div className="flex flex-col md:flex-row items-end gap-4 md:gap-6 p-4 md:p-6 bg-linear-to-b from-[#282828]/50 to-transparent rounded-lg mb-8">
+        <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6 p-4 md:p-6 bg-linear-to-b from-[#282828]/50 to-transparent rounded-lg mb-8">
           <div className="relative">
             <img
               src={song.thumnail || "/placeholder-album.png"}

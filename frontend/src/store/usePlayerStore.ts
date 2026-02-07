@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Song, PlayerState } from '../types';
+import type { PlayerState } from '../types';
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
   queue: [],
@@ -20,7 +20,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       set({ currentIndex: currentIndex - 1, isPlaying: true });
     }
   },
-  seek: (index) => {
+  previous: () => {
+    const { currentIndex } = get();
+    if (currentIndex > 0) {
+      set({ currentIndex: currentIndex - 1, isPlaying: true });
+    }
+  },
+  seek: (index: number) => {
     const { queue } = get();
     if (index >= 0 && index < queue.length) {
       set({ currentIndex: index, isPlaying: true });

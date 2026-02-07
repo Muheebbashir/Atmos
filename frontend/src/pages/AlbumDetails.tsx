@@ -75,7 +75,7 @@ function AlbumDetails() {
     <Layout>
     <div className="pb-32 pt-10">
       {/* Album Header */}
-      <div className="flex flex-col md:flex-row items-end gap-4 md:gap-6 p-4 md:p-6 bg-linear-to-b from-[#282828]/50 to-transparent rounded-lg mb-4">
+      <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6 p-4 md:p-6 bg-linear-to-b from-[#282828]/50 to-transparent rounded-lg mb-4">
         <div className="relative">
           <img
             src={album?.thumnail || "/placeholder-album.png"}
@@ -128,10 +128,10 @@ function AlbumDetails() {
                   className="w-10 h-10 md:w-12 md:h-12 rounded object-cover shrink-0"
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="font-medium text-white text-sm md:text-base truncate flex items-center gap-2">
-                    {song.title}
+                  <div className="font-medium text-white text-sm md:text-base flex items-center gap-2">
+                    <span className="truncate">{song.title}</span>
                     {song.isPremium && (
-                      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-1.5 py-0.5 rounded text-[10px] font-bold">
+                      <span className="inline-flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0">
                         <Crown size={10} fill="black" />
                         PREMIUM
                       </span>
@@ -154,7 +154,7 @@ function AlbumDetails() {
                     handleAddToPlaylist(song);
                   }}
                   disabled={song.isPremium && !isPremiumUser}
-                  className={`opacity-0 group-hover:opacity-100 transition p-1 ${
+                  className={`opacity-100 md:opacity-0 md:group-hover:opacity-100 transition p-1 ${
                     song.isPremium && !isPremiumUser 
                       ? 'text-gray-600 cursor-not-allowed' 
                       : 'text-gray-400 hover:text-green-500'

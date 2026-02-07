@@ -10,4 +10,5 @@ export interface PlayerState {
   next: () => void;
   previous: () => void;
   prev: () => void;
+  seek: (index: number) => void;
 }

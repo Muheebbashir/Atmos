@@ -11,6 +11,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ForgotPassword from "./pages/ForgotPassword";
 import SongDetails from "./pages/SongDetails";
 import Pricing from "./pages/Pricing";
+import Support from "./pages/Support";
+import Search from "./pages/Search";
+import Player from "./components/Player";
 
 function App() {
   const { isLoading, isAuthenticated } = useAuthUser();
@@ -32,12 +35,13 @@ function App() {
         <Route path="/admin/dashboard" element={isAuthenticated ? <AdminDashboard /> : <Navigate to="/login" />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/support" element={<Support />} />
+        <Route path="/search" element={<Search />} />
         <Route path="*" element={<Navigate to="/" />} />
-
-       
       </Routes>
       
-      
+      {/* Player persists across all pages */}
+      {isAuthenticated && <Player />}
     </>
   );
 }
