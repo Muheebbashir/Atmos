@@ -13,9 +13,8 @@ function Songs() {
   const { isAuthenticated, isLoading: authLoading, token, user: authUser } = useAuthUser();
   const playerStore = usePlayerStore();
   const { mutate: addToPlaylistMutate } = useAddToPlaylist();
-  const { songs, isLoading } = useSongs();
 
-  if (isLoading) return <PageLoader />;
+  const { songs } = useSongs();
 
   // 🔒 Auth guard (reusable)
   const requireAuth = (action: () => void) => {
@@ -85,7 +84,7 @@ const handlePlay = (song: Song) => {
               
               {/* PREMIUM BADGE */}
               {song.isPremium && (
-                <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold shadow-lg">
+                <div className="absolute top-2 left-2 bg-linear-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold shadow-lg">
                   <Crown size={12} fill="black" />
                   <span>PREMIUM</span>
                 </div>

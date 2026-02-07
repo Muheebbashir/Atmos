@@ -9,9 +9,8 @@ import { toast } from "react-hot-toast";
 function Albums() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, user: authUser } = useAuthUser();
-  const { albums, isLoading } = useAlbums();
 
-  if (isLoading) return <PageLoader />;
+  const { albums } = useAlbums();
 
   // 🔒 auth guard
   const requireAuth = (action: () => void) => {
