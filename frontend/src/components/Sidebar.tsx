@@ -13,10 +13,10 @@ function SideBar({ isMobileMenuOpen, setIsMobileMenuOpen }: SideBarProps) {
   const { user } = useAuthUser();
 
   // Check if user is premium
-  const isPremiumUser = user?.subscriptionType === "premium" && 
-                        user?.subscriptionStatus === "active" &&
-                        user?.subscriptionEndDate &&
-                        new Date(user.subscriptionEndDate) > new Date();
+  // const isPremiumUser = user?.subscriptionType === "premium" && 
+  //                       user?.subscriptionStatus === "active" &&
+  //                       user?.subscriptionEndDate &&
+  //                       new Date(user.subscriptionEndDate) > new Date();
 
   const handleNavigate = (path: string) => {
     navigate(path);
