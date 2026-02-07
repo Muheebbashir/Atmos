@@ -1,4 +1,4 @@
-import PageLoader from "./PageLoader";
+// ...existing code...
 import { Play, ListPlus, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser } from "../hooks/useAuthUser";
