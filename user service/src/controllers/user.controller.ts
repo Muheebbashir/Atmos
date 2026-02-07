@@ -160,20 +160,18 @@ export const addToPlaylist = asyncHandler(async (req: AuthenticatedRequest, res:
   
   // Check if song exists and is premium
   try {
-    const songResponse = await fetch(`http://localhost:8000/api/v1/song/${req.params.id}`);
+    const songServiceUrl = process.env.SONG_SERVICE_URL || "http://localhost:8000";
+    const songResponse = await fetch(`${songServiceUrl}/api/v1/song/${req.params.id}`);
     if (!songResponse.ok) {
       return res.status(404).json({ message: "Song not found" });
     }
-    
     const song = await songResponse.json();
-    
     // If song is premium, check if user has premium subscription
     if (song.isPremium) {
       const isPremiumUser = user.subscriptionType === "premium" && 
                            user.subscriptionStatus === "active" &&
                            user.subscriptionEndDate &&
                            new Date(user.subscriptionEndDate) > new Date();
-      
       if (!isPremiumUser) {
         return res.status(403).json({ 
           message: "This is a premium song. Please upgrade to premium to add it to your playlist.",
