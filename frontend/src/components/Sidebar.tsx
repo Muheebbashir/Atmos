@@ -137,7 +137,7 @@ function SideBar({ isMobileMenuOpen, setIsMobileMenuOpen }: SideBarProps) {
             <a href="#" className="hover:text-white hover:underline transition-colors">About Ads</a>
           </div>
           <div className="text-gray-600 text-[10px] mt-2">
-            © 2026 Atmos Clone
+            © 2026 Atmos 
           </div>
         </div>
       </div>
