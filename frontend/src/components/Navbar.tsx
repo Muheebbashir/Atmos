@@ -31,7 +31,7 @@ function Navbar({ setIsMobileMenuOpen }: NavbarProps) {
   return (
     <>
       {/* TOP BAR */}
-      <div className="w-full flex justify-between items-center">
+      <div className="w-full flex justify-between items-center lg:pr-6">
         {/* LEFT NAV BUTTONS */}
         <div className="flex items-center gap-2">
           {/* Hamburger Menu for Mobile */}
@@ -124,7 +124,7 @@ function Navbar({ setIsMobileMenuOpen }: NavbarProps) {
 
               <button
                 onClick={() => navigate("/login")}
-                className="bg-white text-black px-4 sm:px-6 py-1.5 rounded-full hover:scale-105 transition font-bold cursor-pointer text-sm sm:text-base"
+                className="bg-white text-black px-4 sm:px-6 py-1.5 rounded-full hover:scale-105 transition font-bold cursor-pointer text-sm sm:text-base "
               >
                 Log in
               </button>

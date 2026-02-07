@@ -1,19 +1,22 @@
 import axios from "axios";
 
+const SONG_API_URL = import.meta.env.VITE_SONG_API_URL || "http://localhost:8000";
+const ADMIN_API_URL = import.meta.env.VITE_ADMIN_API_URL || "http://localhost:7000";
+
 export const fetchAllAlbums = async () => {
-  const res = await axios.get("http://localhost:8000/api/v1/album/all");
+  const res = await axios.get(`${SONG_API_URL}/api/v1/album/all`);
   return res.data;
 };
 
 
 export const fetchAlbumById = async (albumId: string) => {
-  const res = await axios.get(`http://localhost:8000/api/v1/album/${albumId}`);
+  const res = await axios.get(`${SONG_API_URL}/api/v1/album/${albumId}`);
   return res.data;
 };
 
 export const createAlbum = async (token: string, albumData: FormData) => {
   const res = await axios.post(
-    "http://localhost:7000/api/v1/album/new",
+    `${ADMIN_API_URL}/api/v1/album/new`,
     albumData,
     {
       headers: {
@@ -27,7 +30,7 @@ export const createAlbum = async (token: string, albumData: FormData) => {
 
 export const deleteAlbum = async (token: string, albumId: string) => {
   const res = await axios.delete(
-    `http://localhost:7000/api/v1/album/${albumId}`,
+    `${ADMIN_API_URL}/api/v1/album/${albumId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

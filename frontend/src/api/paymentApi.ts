@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const USER_API_URL = import.meta.env.VITE_USER_API_URL || "http://localhost:3000";
+
 const paymentApi = axios.create({
-  baseURL: "http://localhost:3000/api/payment",
+  baseURL: `${USER_API_URL}/api/payment`,
 });
 
 export const createSubscription = async (token: string) => {
