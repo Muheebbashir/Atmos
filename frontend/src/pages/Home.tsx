@@ -6,13 +6,15 @@ import Songs from "../components/Songs";
 import PageLoader from "../components/PageLoader";
 import { useAlbums } from "../hooks/useAlbums";
 import { useSongs } from "../hooks/useSongs";
+import {useAuthUser} from "../hooks/useAuthUser";
 
 
 function Home() {
   const { isLoading: albumsLoading } = useAlbums();
   const { isLoading: songsLoading } = useSongs();
+  const { isLoading: userLoading } = useAuthUser();
 
-  if (albumsLoading || songsLoading) {
+  if (albumsLoading || songsLoading || userLoading) {
     return <PageLoader />;
   }
 
