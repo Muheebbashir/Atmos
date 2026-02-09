@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Music, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import { useForgotPassword } from "../hooks/useForgotPassword";
 import ResetPasswordModal from "../components/ResetPasswordModal";
@@ -57,7 +57,7 @@ function ForgotPassword() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8 sm:mb-12">
             <div className="flex items-center justify-center gap-2 mb-6">
-              <Music className="text-green-500" size={32} />
+              <img src="/path/to/logo.png" alt="Logo" className="text-green-500" width={32} height={32} />
               <h1 className="text-2xl sm:text-3xl font-bold text-white">Atmos</h1>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Reset Password</h2>
