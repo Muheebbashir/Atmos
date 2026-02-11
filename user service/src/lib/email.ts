@@ -12,14 +12,26 @@ const getResend = () => {
   return resend;
 };
 
-export const sendOTPEmail = async (email: string, otp: string) => {
+export const sendOTPEmail = async (email: string, otp: string, purpose: 'registration' | 'reset' = 'registration') => {
   const resendClient = getResend();
+  
+  const subject = purpose === 'registration' ? "Your Atmos Email Verification Code" : "Your Atmos Password Reset Code";
+  const welcomeText = purpose === 'registration' ? "Verify Your Email" : "Reset Your Password";
+  const messageText = purpose === 'registration' 
+    ? "Your Atmos account is almost ready! Use the code below to verify your email address and complete your registration."
+    : "We received a request to reset your password. Use the code below to reset your password.";
+  const actionText = purpose === 'registration' 
+    ? "Enter this code in the verification popup to confirm your email."
+    : "Enter this code to proceed with resetting your password.";
+  const ignoreText = purpose === 'registration' 
+    ? "If you didn't sign up for Atmos, please ignore this email."
+    : "If you didn't request a password reset, please ignore this email.";
   
   try {
     await resendClient.emails.send({
       from: "Atmos <noreply@muheeb.dev>",
       to: email,
-      subject: "Your Atmos Email Verification Code",
+      subject: subject,
       html: `
         <!DOCTYPE html>
         <html>
@@ -105,20 +117,20 @@ export const sendOTPEmail = async (email: string, otp: string) => {
                 <h1>ATMOS</h1>
               </div>
               <div class="content">
-                <div class="welcome">Verify Your Email</div>
+                <div class="welcome">${welcomeText}</div>
                 <div class="message">
-                  Your Atmos account is almost ready! Use the code below to verify your email address and complete your registration.
+                  ${messageText}
                 </div>
                 <div class="otp-container">
                   <div class="otp-box">${otp}</div>
                 </div>
                 <div class="message">
-                  Enter this code in the verification popup to confirm your email.
+                  ${actionText}
                 </div>
                 <hr class="divider">
                 <div class="footer">
                   <p>This code will expire in <strong>10 minutes</strong>.</p>
-                  <p>If you didn't sign up for Atmos, please ignore this email.</p>
+                  <p>${ignoreText}</p>
                   <p>© 2026 Atmos. All rights reserved.</p>
                 </div>
               </div>

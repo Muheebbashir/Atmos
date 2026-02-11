@@ -64,7 +64,7 @@ export const registerUser = asyncHandler(
 
     try {
       // Send OTP email
-      await sendOTPEmail(email, otp);
+      await sendOTPEmail(email, otp, 'registration');
     } catch (error) {
       console.error("Failed to send OTP email:", error);
       return res.status(500).json({
@@ -295,7 +295,7 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
 
   try {
     // Send OTP email
-    await sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp, 'reset');
   } catch (error) {
     console.error("Failed to send OTP email:", error);
     return res.status(500).json({
