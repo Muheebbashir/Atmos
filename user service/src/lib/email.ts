@@ -17,7 +17,7 @@ export const sendOTPEmail = async (email: string, otp: string) => {
   
   try {
     await resendClient.emails.send({
-      from: "Atmos <onboarding@resend.dev>",
+      from: "Atmos <noreply@muheeb.dev>",
       to: email,
       subject: "Your Atmos Email Verification Code",
       html: `
